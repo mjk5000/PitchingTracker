@@ -2,12 +2,14 @@
 
 A modern, responsive website for Beaverdale Little League.
 
+**Live Site:** [GitHub Pages](https://mjk5000.github.io/BeaverdaleLittleLeague/)
+
 ## Features
 
+- Simple login page that directs to Blue Sombrero platform
+- Comprehensive dashboard with division-organized resources
 - Responsive design that works on desktop, tablet, and mobile devices
-- Smooth scrolling navigation
 - Clean, professional layout
-- Easy to customize and maintain
 
 ## Project Structure
 
