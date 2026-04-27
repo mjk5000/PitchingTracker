@@ -43,3 +43,6 @@ This is a static HTML website and can be deployed to:
 ## License
 
 © 2026 Beaverdale Little League. All rights reserved.
+
+---
+Last updated: April 27, 2026
