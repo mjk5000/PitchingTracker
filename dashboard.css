@@ -102,6 +102,21 @@ section h2 {
     font-size: 1.1rem;
 }
 
+.action-card .subtitle {
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+    opacity: 0.9;
+}
+
+.action-card.highlight {
+    background: linear-gradient(135deg, #ffcc00 0%, #ff9900 100%);
+    color: #003366;
+}
+
+.action-card.highlight .icon {
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+
 /* Division Cards */
 .division-card {
     background: #f9f9f9;
