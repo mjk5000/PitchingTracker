@@ -116,6 +116,283 @@ section p {
     text-align: center;
 }
 
+/* Social Links in Hero */
+.social-links {
+    margin-top: 2rem;
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+}
+
+.social-links a {
+    font-size: 2rem;
+    text-decoration: none;
+    transition: transform 0.3s;
+}
+
+.social-links a:hover {
+    transform: scale(1.2);
+}
+
+/* Quick Links Grid */
+.quick-links {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    margin-top: 3rem;
+}
+
+.quick-link-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+    text-align: center;
+    text-decoration: none;
+    color: #333;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.quick-link-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+.quick-link-card h3 {
+    color: #003366;
+    margin-bottom: 0.5rem;
+}
+
+.quick-link-card p {
+    font-size: 0.95rem;
+    color: #666;
+}
+
+/* Dates Grid */
+.dates-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.date-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.date-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.date-card h3 {
+    color: #003366;
+    margin-bottom: 0.5rem;
+}
+
+.date-card .date {
+    font-weight: bold;
+    color: #ffcc00;
+    background: #003366;
+    padding: 0.5rem;
+    border-radius: 5px;
+    margin: 1rem 0;
+}
+
+.date-card .details {
+    font-size: 0.95rem;
+    color: #666;
+}
+
+/* Teams/Leagues Section */
+.teams-content {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.league-list {
+    list-style: none;
+    text-align: left;
+    margin: 2rem 0;
+}
+
+.league-list li {
+    background: white;
+    padding: 1rem;
+    margin: 0.5rem 0;
+    border-left: 4px solid #003366;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.teams-content .note {
+    font-size: 0.9rem;
+    color: #666;
+    font-style: italic;
+    margin-top: 2rem;
+}
+
+.teams-content .note a {
+    color: #0066cc;
+}
+
+/* Registration Section */
+.registration {
+    background: linear-gradient(135deg, #f4f4f4 0%, #e8e8e8 100%);
+}
+
+.registration-content {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.registration-info {
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.registration-info h3 {
+    color: #003366;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.registration-info p {
+    margin-bottom: 1.5rem;
+}
+
+.registration-info .cta-button {
+    display: block;
+    width: fit-content;
+    margin: 2rem auto;
+}
+
+.registration-steps {
+    margin: 2rem 0;
+    text-align: left;
+}
+
+.registration-steps h4 {
+    color: #003366;
+    margin-bottom: 1rem;
+}
+
+.registration-steps ol {
+    margin-left: 1.5rem;
+}
+
+.registration-steps li {
+    margin: 0.5rem 0;
+    line-height: 1.6;
+}
+
+.scholarship-info {
+    background: #fffbea;
+    padding: 1.5rem;
+    border-radius: 5px;
+    border-left: 4px solid #ffcc00;
+    margin-top: 2rem;
+    text-align: left;
+}
+
+.scholarship-info h4 {
+    color: #003366;
+    margin-bottom: 0.5rem;
+}
+
+.scholarship-info p {
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+.scholarship-info a {
+    color: #0066cc;
+    font-weight: bold;
+}
+
+/* Contact Section */
+.contact-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    margin: 2rem 0;
+}
+
+.contact-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.contact-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.contact-card h3 {
+    color: #003366;
+    margin-bottom: 1rem;
+}
+
+.contact-card a {
+    color: #0066cc;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.contact-card a:hover {
+    text-decoration: underline;
+}
+
+.contact-social {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* Resources Section */
+.resources {
+    margin-top: 3rem;
+    padding: 2rem;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.resources h3 {
+    color: #003366;
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.resource-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.resource-links a {
+    background: #003366;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: background-color 0.3s;
+}
+
+.resource-links a:hover {
+    background: #0066cc;
+}
+
 /* Footer */
 footer {
     background-color: #003366;
@@ -143,5 +420,26 @@ footer {
 
     .hero-content p {
         font-size: 1rem;
+    }
+
+    .quick-links {
+        grid-template-columns: 1fr;
+    }
+
+    .dates-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .contact-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .resource-links {
+        flex-direction: column;
+    }
+
+    .resource-links a {
+        width: 100%;
+        text-align: center;
     }
 }
