@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v1.1.0';
+const CACHE_VERSION = 'v1.1.1';
 const CACHE_NAME = `pitching-tracker-${CACHE_VERSION}`;
 const urlsToCache = [
   './',
@@ -38,35 +38,58 @@ self.addEventListener('activate', event => {
   );
 });
 
-// Fetch event - serve from cache, fallback to network
+// Message event - handle skip waiting
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
+// Fetch event - network first for HTML/JS/CSS, cache for others
 self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        // Cache hit - return response
-        if (response) {
-          // Also fetch from network to update cache
-          fetch(event.request).then(networkResponse => {
+  const url = new URL(event.request.url);
+  
+  // For HTML, JS, CSS - always try network first for updates
+  if (event.request.url.endsWith('.html') || 
+      event.request.url.endsWith('.js') || 
+      event.request.url.endsWith('.css') ||
+      event.request.url === url.origin + '/' ||
+      event.request.url === url.origin) {
+    event.respondWith(
+      fetch(event.request)
+        .then(networkResponse => {
+          // Update cache with fresh content
+          if (networkResponse && networkResponse.status === 200) {
+            const responseToCache = networkResponse.clone();
+            caches.open(CACHE_NAME).then(cache => {
+              cache.put(event.request, responseToCache);
+            });
+          }
+          return networkResponse;
+        })
+        .catch(() => {
+          // Fallback to cache if network fails
+          return caches.match(event.request);
+        })
+    );
+  } else {
+    // For other resources (icons, etc) - cache first
+    event.respondWith(
+      caches.match(event.request)
+        .then(response => {
+          if (response) {
+            return response;
+          }
+          return fetch(event.request).then(networkResponse => {
             if (networkResponse && networkResponse.status === 200) {
+              const responseToCache = networkResponse.clone();
               caches.open(CACHE_NAME).then(cache => {
-                cache.put(event.request, networkResponse);
+                cache.put(event.request, responseToCache);
               });
             }
-          }).catch(() => {});
-          return response;
-        }
-        // Not in cache - fetch from network
-        return fetch(event.request).then(networkResponse => {
-          if (!networkResponse || networkResponse.status !== 200) {
             return networkResponse;
-          }
-          // Clone and cache the response
-          const responseToCache = networkResponse.clone();
-          caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, responseToCache);
           });
-          return networkResponse;
-        });
-      })
-  );
+        })
+    );
+  }
 });

@@ -71,19 +71,49 @@
         </div>
         
         <div class="version">
-            v1.1.0
+            v1.1.1
         </div>
     </div>
     <script src="script.js"></script>
     <script>
         // Register service worker for PWA functionality and auto-updates
         if ('serviceWorker' in navigator) {
+            let refreshing = false;
+            
+            // Reload page when new service worker takes control
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (!refreshing) {
+                    refreshing = true;
+                    window.location.reload();
+                }
+            });
+            
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
                     .then(registration => {
                         console.log('ServiceWorker registered:', registration);
+                        
                         // Check for updates every time the page loads
                         registration.update();
+                        
+                        // Check for updates every 5 minutes
+                        setInterval(() => {
+                            registration.update();
+                        }, 5 * 60 * 1000);
+                        
+                        // Handle updates
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    // New service worker available, prompt user
+                                    if (confirm('New version available! Reload to update?')) {
+                                        newWorker.postMessage({ type: 'SKIP_WAITING' });
+                                    }
+                                }
+                            });
+                        });
                     })
                     .catch(error => {
                         console.log('ServiceWorker registration failed:', error);
