@@ -44,24 +44,33 @@
             <button onclick="resetAllData()" class="btn-secondary">Reset All Data</button>
         </div>
 
+        <div class="settings-section">
+            <h3 class="collapsible-header" onclick="toggleSection('settings')">
+                <span class="toggle-icon" id="settings-icon">+</span>
+                Settings
+            </h3>
+            <div id="settings" class="collapsible-content" style="display: none;">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="use13URules" onchange="toggle13URules()">
+                    <span>Use 13U Division Rules (7 innings daily max)</span>
+                </label>
+            </div>
+        </div>
+
         <div class="rules-summary">
             <h3 class="collapsible-header" onclick="toggleSection('quick-rules')">
                 <span class="toggle-icon" id="quick-rules-icon">+</span>
-                Quick Reference Rules
+                <span id="rules-title">Quick Reference Rules (7U-12U)</span>
             </h3>
             <div id="quick-rules" class="collapsible-content" style="display: none;">
-                <ul>
-                    <li><strong>One Day Max to Pitch Next Day:</strong> 3 innings</li>
-                    <li><strong>One Day Maximum:</strong> 6 innings</li>
-                    <li><strong>Two Day Maximum:</strong> 8 innings total</li>
-                    <li><strong>Three Day Maximum:</strong> 8 innings total</li>
-                    <li><strong>Mandatory Rest:</strong> After 3+ innings in one day, 8 innings in 2 days, 8 innings in 3 days, or 3 consecutive days pitching</li>
+                <ul id="rules-list">
+                    <!-- Rules will be populated by JavaScript -->
                 </ul>
             </div>
         </div>
         
         <div class="version">
-            v1.0.3
+            v1.0.4
         </div>
     </div>
     <script src="script.js"></script>

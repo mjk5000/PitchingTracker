@@ -35,13 +35,25 @@ function fractionToDecimal(str) {
 let players = [];
 let playerOrder = [];
 let deleteMode = false;
+let use13URules = false;
 
-// Tournament Rules Constants (7U-12U)
-const RULES = {
+// Tournament Rules Constants
+const RULES_7U_12U = {
     ONE_DAY_MAX_TO_PITCH_NEXT: 3,
     ONE_DAY_MAX: 6,
-    THREE_DAY_MAX: 8
+    THREE_DAY_MAX: 8,
+    NAME: '7U-12U'
 };
+
+const RULES_13U = {
+    ONE_DAY_MAX_TO_PITCH_NEXT: 3,
+    ONE_DAY_MAX: 7,
+    THREE_DAY_MAX: 8,
+    NAME: '13U'
+};
+
+// Current active rules
+let RULES = { ...RULES_7U_12U };
 
 // Initialize data storage
 let pitchingData = {};
@@ -95,6 +107,13 @@ function loadData() {
     } else {
         playerOrder = [...players];
     }
+    
+    // Load 13U rules setting
+    const saved13U = localStorage.getItem('use13URules');
+    if (saved13U !== null) {
+        use13URules = JSON.parse(saved13U);
+        updateRules();
+    }
 }
 
 // Save data to localStorage
@@ -102,6 +121,7 @@ function saveData() {
     localStorage.setItem('players', JSON.stringify(players));
     localStorage.setItem('pitchingData', JSON.stringify(pitchingData));
     localStorage.setItem('playerOrder', JSON.stringify(playerOrder));
+    localStorage.setItem('use13URules', JSON.stringify(use13URules));
 }
 
 // Calculate remaining innings and status
@@ -714,6 +734,14 @@ function resetAllData() {
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
     loadData();
+    
+    // Set checkbox state
+    const checkbox = document.getElementById('use13URules');
+    if (checkbox) {
+        checkbox.checked = use13URules;
+    }
+    
+    renderRules();
     renderTable();
 });
 
@@ -728,5 +756,59 @@ function toggleSection(sectionId) {
     } else {
         content.style.display = 'none';
         icon.textContent = '+';
+    }
+}
+
+// Update active rules based on division
+function updateRules() {
+    if (use13URules) {
+        RULES.ONE_DAY_MAX_TO_PITCH_NEXT = RULES_13U.ONE_DAY_MAX_TO_PITCH_NEXT;
+        RULES.ONE_DAY_MAX = RULES_13U.ONE_DAY_MAX;
+        RULES.THREE_DAY_MAX = RULES_13U.THREE_DAY_MAX;
+        RULES.NAME = RULES_13U.NAME;
+    } else {
+        RULES.ONE_DAY_MAX_TO_PITCH_NEXT = RULES_7U_12U.ONE_DAY_MAX_TO_PITCH_NEXT;
+        RULES.ONE_DAY_MAX = RULES_7U_12U.ONE_DAY_MAX;
+        RULES.THREE_DAY_MAX = RULES_7U_12U.THREE_DAY_MAX;
+        RULES.NAME = RULES_7U_12U.NAME;
+    }
+}
+
+// Toggle 13U rules
+function toggle13URules() {
+    const checkbox = document.getElementById('use13URules');
+    use13URules = checkbox.checked;
+    updateRules();
+    saveData();
+    renderRules();
+    renderTable();
+}
+
+// Render rules list
+function renderRules() {
+    const rulesList = document.getElementById('rules-list');
+    const rulesTitle = document.getElementById('rules-title');
+    
+    if (rulesTitle) {
+        rulesTitle.textContent = `Quick Reference Rules (${RULES.NAME})`;
+    }
+    
+    if (rulesList) {
+        if (use13URules) {
+            rulesList.innerHTML = `
+                <li><strong>Daily Maximum:</strong> ${RULES.ONE_DAY_MAX} innings (21 outs) per day</li>
+                <li><strong>Tournament Maximum:</strong> ${RULES.THREE_DAY_MAX} innings (24 outs) over 3 days</li>
+                <li><strong>Mandatory Rest:</strong> After ${RULES.ONE_DAY_MAX_TO_PITCH_NEXT}+ innings in one day, ineligible to pitch next day</li>
+                <li><strong>Removal Rule:</strong> Once removed from mound, cannot return to pitch in same game</li>
+            `;
+        } else {
+            rulesList.innerHTML = `
+                <li><strong>One Day Max to Pitch Next Day:</strong> ${RULES.ONE_DAY_MAX_TO_PITCH_NEXT} innings</li>
+                <li><strong>One Day Maximum:</strong> ${RULES.ONE_DAY_MAX} innings</li>
+                <li><strong>Two Day Maximum:</strong> ${RULES.THREE_DAY_MAX} innings total</li>
+                <li><strong>Three Day Maximum:</strong> ${RULES.THREE_DAY_MAX} innings total</li>
+                <li><strong>Mandatory Rest:</strong> After ${RULES.ONE_DAY_MAX_TO_PITCH_NEXT}+ innings in one day, ${RULES.THREE_DAY_MAX} innings in 2 days, ${RULES.THREE_DAY_MAX} innings in 3 days, or 3 consecutive days pitching</li>
+            `;
+        }
     }
 }
