@@ -342,6 +342,9 @@ function renderTable() {
         const day1Max = getMaxAllowed(player, 'day1');
         const day2Max = getMaxAllowed(player, 'day2');
         
+        // Lock Day 1 if Day 2 has any value
+        const day1Locked = day2 > 0;
+        
         row.innerHTML = `
             <td class="drag-handle ${deleteMode ? 'delete-mode' : ''}" ${deleteMode ? `onclick="removePlayer('${player}')"` : ''}>${deleteMode ? '✕' : '☰'}</td>
             <td>
@@ -351,16 +354,16 @@ function renderTable() {
             </td>
             <td>
                 <div class="innings-counter">
-                    <button class="counter-btn" onclick="incrementInnings('${player}', 'day1')" ${day1 >= day1Max ? 'disabled' : ''}>▲</button>
+                    <button class="counter-btn counter-btn-up" onclick="incrementInnings('${player}', 'day1')" ${day1 >= day1Max || day1Locked ? 'disabled' : ''}>▲</button>
                     <span class="innings-value">${decimalToFraction(day1)}</span>
-                    <button class="counter-btn" onclick="decrementInnings('${player}', 'day1')" ${day1 <= 0 ? 'disabled' : ''}>▼</button>
+                    <button class="counter-btn counter-btn-down" onclick="decrementInnings('${player}', 'day1')" ${day1 <= 0 || day1Locked ? 'disabled' : ''}>▼</button>
                 </div>
             </td>
             <td>
                 <div class="innings-counter">
-                    <button class="counter-btn" onclick="incrementInnings('${player}', 'day2')" ${day2 >= day2Max ? 'disabled' : ''}>▲</button>
+                    <button class="counter-btn counter-btn-up" onclick="incrementInnings('${player}', 'day2')" ${day2 >= day2Max ? 'disabled' : ''}>▲</button>
                     <span class="innings-value">${decimalToFraction(day2)}</span>
-                    <button class="counter-btn" onclick="decrementInnings('${player}', 'day2')" ${day2 <= 0 ? 'disabled' : ''}>▼</button>
+                    <button class="counter-btn counter-btn-down" onclick="decrementInnings('${player}', 'day2')" ${day2 <= 0 ? 'disabled' : ''}>▼</button>
                 </div>
             </td>
             <td><span class="remaining total-innings ${remainingClass}">${decimalToFraction(inningsRemaining)}</span></td>

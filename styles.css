@@ -371,6 +371,26 @@ tbody td:nth-child(5) {
     opacity: 0.4;
 }
 
+.counter-btn-up {
+    border-color: #28a745;
+    color: #28a745;
+}
+
+.counter-btn-up:active:not(:disabled) {
+    background: #28a745;
+    color: white;
+}
+
+.counter-btn-down {
+    border-color: #dc3545;
+    color: #dc3545;
+}
+
+.counter-btn-down:active:not(:disabled) {
+    background: #dc3545;
+    color: white;
+}
+
 /* Remaining Innings Display */
 .remaining {
     font-weight: bold;
