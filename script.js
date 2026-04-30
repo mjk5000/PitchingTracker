@@ -733,7 +733,13 @@ function resetAllData() {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
-    loadData();
+    // Check if there's shared data in the URL first
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('data')) {
+        loadSharedData();
+    } else {
+        loadData();
+    }
     
     // Set checkbox state
     const checkbox = document.getElementById('use13URules');
@@ -801,5 +807,72 @@ function renderRules() {
             <li><strong>Three Day Maximum:</strong> ${RULES.THREE_DAY_MAX} innings total</li>
             <li><strong>Mandatory Rest:</strong> After ${RULES.ONE_DAY_MAX_TO_PITCH_NEXT}+ innings in one day, ${RULES.THREE_DAY_MAX} innings in 2 days, ${RULES.THREE_DAY_MAX} innings in 3 days, or 3 consecutive days pitching</li>
         `;
+    }
+}
+
+// Share current data via URL
+function shareData() {
+    if (players.length === 0) {
+        alert('No players to share. Add some players first.');
+        return;
+    }
+    
+    // Create data object to share
+    const shareData = {
+        players: players,
+        playerOrder: playerOrder,
+        pitchingData: pitchingData,
+        use13URules: use13URules
+    };
+    
+    // Encode data to base64 URL-safe string
+    const jsonString = JSON.stringify(shareData);
+    const base64Data = btoa(jsonString);
+    
+    // Create shareable URL
+    const baseUrl = window.location.origin + window.location.pathname;
+    const shareUrl = `${baseUrl}?data=${encodeURIComponent(base64Data)}`;
+    
+    // Copy to clipboard
+    navigator.clipboard.writeText(shareUrl).then(() => {
+        alert('Share link copied to clipboard!\n\nAnyone with this link can view your current pitching data.');
+    }).catch(err => {
+        // Fallback: show the URL in a prompt for manual copying
+        prompt('Copy this link to share:', shareUrl);
+    });
+}
+
+// Load shared data from URL
+function loadSharedData() {
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const encodedData = urlParams.get('data');
+        
+        if (!encodedData) {
+            loadData();
+            return;
+        }
+        
+        // Decode from base64
+        const jsonString = atob(decodeURIComponent(encodedData));
+        const shareData = JSON.parse(jsonString);
+        
+        // Load the shared data
+        players = shareData.players || [];
+        playerOrder = shareData.playerOrder || [];
+        pitchingData = shareData.pitchingData || {};
+        use13URules = shareData.use13URules || false;
+        
+        // Update rules based on the shared setting
+        updateRules();
+        
+        // Don't save to localStorage automatically - it's shared data
+        // User can manually save if they want by adding players or resetting
+        
+        console.log('Loaded shared data successfully');
+    } catch (error) {
+        console.error('Error loading shared data:', error);
+        alert('Error loading shared data. Loading your saved data instead.');
+        loadData();
     }
 }

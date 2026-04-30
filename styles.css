@@ -414,7 +414,8 @@ tbody td:nth-child(5) {
 
 .btn-primary,
 .btn-secondary,
-.btn-delete {
+.btn-delete,
+.btn-share {
     padding: 0.6rem 1.2rem;
     border: none;
     border-radius: 6px;
@@ -470,6 +471,20 @@ tbody td:nth-child(5) {
 
 .btn-delete.active:active {
     background: #1e7e34;
+    transform: scale(0.95);
+}
+
+.btn-share {
+    background: #17a2b8;
+    color: white;
+}
+
+.btn-share:hover {
+    background: #138496;
+}
+
+.btn-share:active {
+    background: #117a8b;
     transform: scale(0.95);
 }
 
@@ -602,7 +617,8 @@ tbody td:nth-child(5) {
 
     .btn-primary,
     .btn-secondary,
-    .btn-delete {
+    .btn-delete,
+    .btn-share {
         width: 100%;
         padding: 0.6rem;
         font-size: 0.85rem;
