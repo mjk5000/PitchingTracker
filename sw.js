@@ -1,40 +1,29 @@
-const CACHE_VERSION = 'v1.1.3';
+const CACHE_VERSION = 'v1.1.4';
 const CACHE_NAME = `pitching-tracker-${CACHE_VERSION}`;
-const urlsToCache = [
-  './',
-  './index.html',
-  './styles.css',
-  './script.js',
-  './icon.svg',
-  './manifest.json'
-];
 
-// Install event - cache files
+// Install event - skip waiting immediately to update fast
 self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('Opened cache');
-        return cache.addAll(urlsToCache);
-      })
-      .then(() => self.skipWaiting())
-  );
+  console.log('Service Worker installing:', CACHE_VERSION);
+  self.skipWaiting();
 });
 
-// Activate event - clean up old caches
+// Activate event - clean up old caches and take control immediately
 self.addEventListener('activate', event => {
+  console.log('Service Worker activating:', CACHE_VERSION);
   event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('Deleting old cache:', cacheName);
+    caches.keys()
+      .then(cacheNames => {
+        return Promise.all(
+          cacheNames.map(cacheName => {
+            console.log('Deleting cache:', cacheName);
             return caches.delete(cacheName);
-          }
-        })
-      );
-    })
-    .then(() => self.clients.claim())
+          })
+        );
+      })
+      .then(() => {
+        console.log('Taking control of all clients');
+        return self.clients.claim();
+      })
   );
 });
 
@@ -45,50 +34,19 @@ self.addEventListener('message', event => {
   }
 });
 
-// Fetch event - network first for HTML/JS/CSS, cache for others
+// Fetch event - always fetch fresh from network (no caching)
 self.addEventListener('fetch', event => {
-  const url = new URL(event.request.url);
-  
-  // For HTML, JS, CSS - always try network first for updates
-  if (event.request.url.endsWith('.html') || 
-      event.request.url.endsWith('.js') || 
-      event.request.url.endsWith('.css') ||
-      event.request.url === url.origin + '/' ||
-      event.request.url === url.origin) {
-    event.respondWith(
-      fetch(event.request)
-        .then(networkResponse => {
-          // Update cache with fresh content
-          if (networkResponse && networkResponse.status === 200) {
-            const responseToCache = networkResponse.clone();
-            caches.open(CACHE_NAME).then(cache => {
-              cache.put(event.request, responseToCache);
-            });
-          }
-          return networkResponse;
-        })
-        .catch(() => {
-          // Fallback to cache if network fails
-          return caches.match(event.request);
-        })
-    );
-  } else {
-    // For other resources (icons, etc) - cache first
-    event.respondWith(
-      caches.match(event.request)
-        .then(response => {
-          if (response) {
-            return response;
-          }
-          return fetch(event.request).then(networkResponse => {
-            if (networkResponse && networkResponse.status === 200) {
-              const responseToCache = networkResponse.clone();
-              caches.open(CACHE_NAME).then(cache => {
-                cache.put(event.request, responseToCache);
-              });
-            }
-            return networkResponse;
-          });
+  event.respondWith(
+    fetch(event.request)
+      .catch(error => {
+        console.log('Fetch failed:', error);
+        return new Response('Offline', {
+          status: 503,
+          statusText: 'Service Unavailable'
+        });
+      })
+  );
+});
         })
     );
   }
