@@ -1,7 +1,7 @@
 {
-  "name": "Pitching Tracker - 7U-12U Tournament",
+  "name": "Tournament Pitching Tracker",
   "short_name": "Pitching Tracker",
-  "description": "Track pitching innings for 7U-12U Little League tournaments",
+  "description": "Track pitching innings for 7U-12U and 13U+ Little League tournaments",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#ffffff",

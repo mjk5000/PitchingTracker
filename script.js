@@ -317,13 +317,13 @@ function renderTable() {
         // Calculate innings remaining based on tournament stage
         let inningsRemaining;
         if (day1 === 0 && day2 > 0) {
-            // Only Day 2 has innings (Day 1 is 0), use 6 inning daily max for that day
+            // Only Day 2 has innings (Day 1 is 0), use daily max for that day
             inningsRemaining = Math.max(0, RULES.ONE_DAY_MAX - day2);
         } else if (day1 > RULES.ONE_DAY_MAX_TO_PITCH_NEXT) {
-            // If Day 1 > 3 innings, must rest Day 2, but show remaining from 6 inning daily max
+            // If Day 1 > 3 innings, must rest Day 2, but show remaining from daily max
             inningsRemaining = Math.max(0, RULES.ONE_DAY_MAX - day1);
         } else {
-            // Use 8 inning tournament total for all other cases
+            // Use tournament total for all other cases
             inningsRemaining = Math.max(0, RULES.THREE_DAY_MAX - totalInnings);
         }
         const remainingClass = inningsRemaining <= 0 ? 'none' : (inningsRemaining <= 2 ? 'low' : '');
