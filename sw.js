@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v1.0.9';
+const CACHE_VERSION = 'v1.1.0';
 const CACHE_NAME = `pitching-tracker-${CACHE_VERSION}`;
 const urlsToCache = [
   './',
