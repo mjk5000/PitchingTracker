@@ -10,7 +10,7 @@
     <meta name="apple-mobile-web-app-title" content="Pitching Tracker">
     <meta name="mobile-web-app-capable" content="yes">
     <title>Tournament Pitching Tracker</title>
-    <link rel="stylesheet" href="styles.css?v=1.1.9">
+    <link rel="stylesheet" href="styles.css?v=1.2.0">
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/svg+xml" href="icon.svg">
     <link rel="apple-touch-icon" href="icon.svg">
@@ -71,10 +71,10 @@
         </div>
         
         <div class="version">
-            v1.1.9
+            v1.2.0
         </div>
     </div>
-    <script src="script.js?v=1.1.9"></script>
+    <script src="script.js?v=1.2.0"></script>
     <script>
         // Register service worker for PWA functionality and auto-updates
         if ('serviceWorker' in navigator) {
@@ -92,25 +92,25 @@
             // Function to check for version updates
             async function checkForUpdate() {
                 try {
-                    const response = await fetch('./index.html', { 
+                    // Add timestamp to bypass ALL caches
+                    const timestamp = new Date().getTime();
+                    const response = await fetch(`./version.json?t=${timestamp}`, { 
                         cache: 'no-store',
                         headers: { 'Cache-Control': 'no-cache' }
                     });
-                    const html = await response.text();
-                    const versionMatch = html.match(/v(\d+\.\d+\.\d+)/);
-                    if (versionMatch) {
-                        const remoteVersion = versionMatch[1];
-                        const currentVersion = '1.1.9';
-                        console.log('Current:', currentVersion, 'Remote:', remoteVersion);
-                        if (remoteVersion !== currentVersion) {
-                            console.log('Version mismatch, forcing reload');
-                            // Clear cache and reload
-                            if ('caches' in window) {
-                                const cacheNames = await caches.keys();
-                                await Promise.all(cacheNames.map(name => caches.delete(name)));
-                            }
-                            window.location.reload(true);
+                    const data = await response.json();
+                    const remoteVersion = data.version;
+                    const currentVersion = '1.2.0';
+                    console.log('Current:', currentVersion, 'Remote:', remoteVersion);
+                    if (remoteVersion !== currentVersion) {
+                        console.log('Version mismatch, forcing reload');
+                        // Clear ALL caches
+                        if ('caches' in window) {
+                            const cacheNames = await caches.keys();
+                            await Promise.all(cacheNames.map(name => caches.delete(name)));
                         }
+                        // Force hard reload
+                        window.location.href = window.location.href.split('?')[0] + '?t=' + timestamp;
                     }
                 } catch (error) {
                     console.log('Version check failed:', error);
@@ -119,7 +119,7 @@
             
             window.addEventListener('load', () => {
                 // Register service worker
-                navigator.serviceWorker.register('./sw.js?v=1.1.9')
+                navigator.serviceWorker.register('./sw.js?v=1.2.0')
                     .then(registration => {
                         console.log('ServiceWorker registered:', registration);
                         
