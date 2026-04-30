@@ -750,6 +750,13 @@ document.addEventListener('DOMContentLoaded', function() {
         checkbox.checked = use13URules;
     }
     
+    // Lock screen orientation to portrait on mobile devices
+    if (screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock('portrait').catch(err => {
+            console.log('Screen orientation lock not supported or denied:', err);
+        });
+    }
+    
     renderRules();
     renderTable();
 });
