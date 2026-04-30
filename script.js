@@ -49,7 +49,7 @@ const RULES_13U = {
     ONE_DAY_MAX_TO_PITCH_NEXT: 3,
     ONE_DAY_MAX: 7,
     THREE_DAY_MAX: 8,
-    NAME: '13U'
+    NAME: '13U+'
 };
 
 // Current active rules
@@ -794,21 +794,12 @@ function renderRules() {
     }
     
     if (rulesList) {
-        if (use13URules) {
-            rulesList.innerHTML = `
-                <li><strong>Daily Maximum:</strong> ${RULES.ONE_DAY_MAX} innings (21 outs) per day</li>
-                <li><strong>Tournament Maximum:</strong> ${RULES.THREE_DAY_MAX} innings (24 outs) over 3 days</li>
-                <li><strong>Mandatory Rest:</strong> After ${RULES.ONE_DAY_MAX_TO_PITCH_NEXT}+ innings in one day, ineligible to pitch next day</li>
-                <li><strong>Removal Rule:</strong> Once removed from mound, cannot return to pitch in same game</li>
-            `;
-        } else {
-            rulesList.innerHTML = `
-                <li><strong>One Day Max to Pitch Next Day:</strong> ${RULES.ONE_DAY_MAX_TO_PITCH_NEXT} innings</li>
-                <li><strong>One Day Maximum:</strong> ${RULES.ONE_DAY_MAX} innings</li>
-                <li><strong>Two Day Maximum:</strong> ${RULES.THREE_DAY_MAX} innings total</li>
-                <li><strong>Three Day Maximum:</strong> ${RULES.THREE_DAY_MAX} innings total</li>
-                <li><strong>Mandatory Rest:</strong> After ${RULES.ONE_DAY_MAX_TO_PITCH_NEXT}+ innings in one day, ${RULES.THREE_DAY_MAX} innings in 2 days, ${RULES.THREE_DAY_MAX} innings in 3 days, or 3 consecutive days pitching</li>
-            `;
-        }
+        rulesList.innerHTML = `
+            <li><strong>One Day Max to Pitch Next Day:</strong> ${RULES.ONE_DAY_MAX_TO_PITCH_NEXT} innings</li>
+            <li><strong>One Day Maximum:</strong> ${RULES.ONE_DAY_MAX} innings</li>
+            <li><strong>Two Day Maximum:</strong> ${RULES.THREE_DAY_MAX} innings total</li>
+            <li><strong>Three Day Maximum:</strong> ${RULES.THREE_DAY_MAX} innings total</li>
+            <li><strong>Mandatory Rest:</strong> After ${RULES.ONE_DAY_MAX_TO_PITCH_NEXT}+ innings in one day, ${RULES.THREE_DAY_MAX} innings in 2 days, ${RULES.THREE_DAY_MAX} innings in 3 days, or 3 consecutive days pitching</li>
+        `;
     }
 }

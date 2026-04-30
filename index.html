@@ -44,19 +44,6 @@
             <button onclick="resetAllData()" class="btn-secondary">Reset All Data</button>
         </div>
 
-        <div class="settings-section">
-            <h3 class="collapsible-header" onclick="toggleSection('settings')">
-                <span class="toggle-icon" id="settings-icon">+</span>
-                Settings
-            </h3>
-            <div id="settings" class="collapsible-content" style="display: none;">
-                <label class="checkbox-label">
-                    <input type="checkbox" id="use13URules" onchange="toggle13URules()">
-                    <span>Use 13U Division Rules (7 innings daily max)</span>
-                </label>
-            </div>
-        </div>
-
         <div class="rules-summary">
             <h3 class="collapsible-header" onclick="toggleSection('quick-rules')">
                 <span class="toggle-icon" id="quick-rules-icon">+</span>
@@ -68,9 +55,22 @@
                 </ul>
             </div>
         </div>
+
+        <div class="settings-section">
+            <h3 class="collapsible-header" onclick="toggleSection('settings')">
+                <span class="toggle-icon" id="settings-icon">+</span>
+                Settings
+            </h3>
+            <div id="settings" class="collapsible-content" style="display: none;">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="use13URules" onchange="toggle13URules()">
+                    <span>Use 13U+ Division Rules (7 innings daily max)</span>
+                </label>
+            </div>
+        </div>
         
         <div class="version">
-            v1.0.4
+            v1.0.5
         </div>
     </div>
     <script src="script.js"></script>
