@@ -34,6 +34,7 @@ function fractionToDecimal(str) {
 // Player list (dynamic)
 let players = [];
 let playerOrder = [];
+let deleteMode = false;
 
 // Tournament Rules Constants (7U-12U)
 const RULES = {
@@ -265,6 +266,14 @@ function renderTable() {
     const tbody = document.getElementById('pitchingTableBody');
     tbody.innerHTML = '';
     
+    // Show/hide the Remove Player button based on player count
+    const deleteBtn = document.getElementById('deleteBtn');
+    if (playerOrder.length === 0) {
+        deleteBtn.style.display = 'none';
+    } else {
+        deleteBtn.style.display = '';
+    }
+    
     if (playerOrder.length === 0) {
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -314,7 +323,7 @@ function renderTable() {
         const day2Max = getMaxAllowed(player, 'day2');
         
         row.innerHTML = `
-            <td class="drag-handle">☰</td>
+            <td class="drag-handle ${deleteMode ? 'delete-mode' : ''}" ${deleteMode ? `onclick="removePlayer('${player}')"` : ''}>${deleteMode ? '✕' : '☰'}</td>
             <td>
                 <div class="player-name-cell">
                     <span class="player-name" ondblclick="editPlayerName('${player}')">${player}</span>
@@ -344,18 +353,24 @@ function renderTable() {
         
         // Query for the drag handle after innerHTML is set
         const dragHandle = row.querySelector('.drag-handle');
-        dragHandle.setAttribute('draggable', 'true');
-        dragHandle.addEventListener('dragstart', handleDragStart);
-        row.addEventListener('dragover', handleDragOver);
-        row.addEventListener('drop', handleDrop);
-        row.addEventListener('dragenter', handleDragEnter);
-        row.addEventListener('dragleave', handleDragLeave);
         
-        // Add touch event listeners for mobile
-        dragHandle.addEventListener('touchstart', handleTouchStart, { passive: false });
-        row.addEventListener('touchmove', handleTouchMove, { passive: false });
-        row.addEventListener('touchend', handleTouchEnd, { passive: false });
-        row.addEventListener('touchcancel', handleTouchEnd, { passive: false });
+        // Only enable dragging if not in delete mode
+        if (!deleteMode) {
+            dragHandle.setAttribute('draggable', 'true');
+            dragHandle.addEventListener('dragstart', handleDragStart);
+            row.addEventListener('dragover', handleDragOver);
+            row.addEventListener('drop', handleDrop);
+            row.addEventListener('dragenter', handleDragEnter);
+            row.addEventListener('dragleave', handleDragLeave);
+            
+            // Add touch event listeners for mobile
+            dragHandle.addEventListener('touchstart', handleTouchStart, { passive: false });
+            row.addEventListener('touchmove', handleTouchMove, { passive: false });
+            row.addEventListener('touchend', handleTouchEnd, { passive: false });
+            row.addEventListener('touchcancel', handleTouchEnd, { passive: false });
+        } else {
+            dragHandle.setAttribute('draggable', 'false');
+        }
         
         tbody.appendChild(row);
     });
@@ -554,6 +569,53 @@ function handleTouchEnd(e) {
     
     draggedElement = null;
     isDragging = false;
+    renderTable();
+}
+
+// Toggle delete mode
+function toggleDeleteMode() {
+    deleteMode = !deleteMode;
+    const deleteBtn = document.getElementById('deleteBtn');
+    
+    if (deleteMode) {
+        deleteBtn.textContent = 'Done';
+        deleteBtn.classList.add('active');
+    } else {
+        deleteBtn.textContent = 'Remove Player';
+        deleteBtn.classList.remove('active');
+    }
+    
+    renderTable();
+}
+
+// Remove a player
+function removePlayer(playerName) {
+    if (!confirm(`Are you sure you want to remove ${playerName}?`)) {
+        return;
+    }
+    
+    // Remove from players array
+    const index = players.indexOf(playerName);
+    if (index > -1) {
+        players.splice(index, 1);
+    }
+    
+    // Remove from playerOrder
+    const orderIndex = playerOrder.indexOf(playerName);
+    if (orderIndex > -1) {
+        playerOrder.splice(orderIndex, 1);
+    }
+    
+    // Remove from pitchingData
+    delete pitchingData[playerName];
+    
+    // Exit delete mode after removing a player
+    deleteMode = false;
+    const deleteBtn = document.getElementById('deleteBtn');
+    deleteBtn.textContent = 'Remove Player';
+    deleteBtn.classList.remove('active');
+    
+    saveData();
     renderTable();
 }
 

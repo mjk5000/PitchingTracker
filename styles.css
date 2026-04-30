@@ -376,7 +376,8 @@ tbody td:nth-child(5) {
 }
 
 .btn-primary,
-.btn-secondary {
+.btn-secondary,
+.btn-delete {
     padding: 0.6rem 1.2rem;
     border: none;
     border-radius: 6px;
@@ -385,6 +386,7 @@ tbody td:nth-child(5) {
     cursor: pointer;
     transition: all 0.2s;
     -webkit-tap-highlight-color: transparent;
+    min-width: 140px;
 }
 
 .btn-primary {
@@ -405,6 +407,44 @@ tbody td:nth-child(5) {
 .btn-secondary:active {
     background: #545b62;
     transform: scale(0.95);
+}
+
+.btn-delete {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-delete:hover {
+    background: #5a6268;
+}
+
+.btn-delete:active {
+    background: #545b62;
+    transform: scale(0.95);
+}
+
+.btn-delete.active {
+    background: #28a745;
+}
+
+.btn-delete.active:hover {
+    background: #218838;
+}
+
+.btn-delete.active:active {
+    background: #1e7e34;
+    transform: scale(0.95);
+}
+
+.drag-handle.delete-mode {
+    color: #dc3545;
+    cursor: pointer;
+    font-weight: bold;
+    user-select: none;
+}
+
+.drag-handle.delete-mode:hover {
+    color: #c82333;
 }
 
 /* Version */
@@ -524,7 +564,8 @@ tbody td:nth-child(5) {
     }
 
     .btn-primary,
-    .btn-secondary {
+    .btn-secondary,
+    .btn-delete {
         width: 100%;
         padding: 0.6rem;
         font-size: 0.85rem;
