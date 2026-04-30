@@ -648,8 +648,30 @@ function removePlayer(playerName) {
 
 // Add a new player
 function addPlayer() {
-    const playerName = prompt('Enter player name:');
-    if (!playerName) return;
+    // Show custom modal instead of browser prompt
+    const modal = document.getElementById('addPlayerModal');
+    const input = document.getElementById('playerNameInput');
+    modal.style.display = 'flex';
+    input.value = '';
+    // Auto-focus the input with a small delay for iOS
+    setTimeout(() => {
+        input.focus();
+    }, 100);
+}
+
+function closeAddPlayerModal() {
+    const modal = document.getElementById('addPlayerModal');
+    modal.style.display = 'none';
+}
+
+function submitAddPlayer() {
+    const input = document.getElementById('playerNameInput');
+    const playerName = input.value;
+    
+    if (!playerName) {
+        closeAddPlayerModal();
+        return;
+    }
     
     const trimmedName = playerName.trim();
     if (!trimmedName) {
@@ -668,6 +690,7 @@ function addPlayer() {
     
     saveData();
     renderTable();
+    closeAddPlayerModal();
 }
 
 // Edit player name
@@ -762,6 +785,17 @@ document.addEventListener('DOMContentLoaded', function() {
     if (screen.orientation && screen.orientation.lock) {
         screen.orientation.lock('portrait').catch(err => {
             console.log('Screen orientation lock not supported or denied:', err);
+        });
+    }
+    
+    // Add Enter key support for add player modal
+    const playerNameInput = document.getElementById('playerNameInput');
+    if (playerNameInput) {
+        playerNameInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                submitAddPlayer();
+            }
         });
     }
     

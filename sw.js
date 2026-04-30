@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v1.2.0';
+const CACHE_VERSION = 'v1.2.1';
 const CACHE_NAME = `pitching-tracker-${CACHE_VERSION}`;
 
 // Install event - skip waiting immediately to update fast
