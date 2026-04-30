@@ -3,14 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Track pitching innings for 7U-12U Little League tournaments. Monitor daily innings, rest requirements, and tournament maximums.">
+    <meta name="theme-color" content="#0066cc">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Pitching Tracker">
     <title>Tournament Pitching Tracker - Beaverdale Little League</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+    <link rel="apple-touch-icon" href="icon.svg">
 </head>
 <body>
     <div class="container">
         <header>
             <h1>Tournament Pitching Tracker</h1>
-            <p class="subtitle">7U-12U Division Rules</p>
+            <p class="subtitle">Beaverdale Little League</p>
         </header>
 
         <div class="table-container">
@@ -53,9 +61,25 @@
         </div>
         
         <div class="version">
-            v1.0.2
+            v1.0.3
         </div>
     </div>
     <script src="script.js"></script>
+    <script>
+        // Register service worker for PWA functionality and auto-updates
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registered:', registration);
+                        // Check for updates every time the page loads
+                        registration.update();
+                    })
+                    .catch(error => {
+                        console.log('ServiceWorker registration failed:', error);
+                    });
+            });
+        }
+    </script>
 </body>
 </html>

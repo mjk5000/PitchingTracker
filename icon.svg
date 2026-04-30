@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#0066cc" rx="80"/>
+  <circle cx="256" cy="256" r="180" fill="white" opacity="0.2"/>
+  <circle cx="256" cy="256" r="120" fill="white" opacity="0.3"/>
+  <path d="M 200 180 L 312 180 L 312 230 L 280 230 L 280 380 L 232 380 L 232 230 L 200 230 Z" fill="white"/>
+  <text x="256" y="450" font-family="Arial, sans-serif" font-size="80" font-weight="bold" fill="white" text-anchor="middle">PT</text>
+</svg>
