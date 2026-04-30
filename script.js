@@ -740,6 +740,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.has('data')) {
         loadSharedData();
+        
+        // Clean up the URL - remove the query parameters
+        const cleanUrl = window.location.origin + window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
     } else {
         loadData();
     }
