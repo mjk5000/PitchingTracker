@@ -653,10 +653,16 @@ function addPlayer() {
     const input = document.getElementById('playerNameInput');
     modal.style.display = 'flex';
     input.value = '';
-    // Auto-focus the input with a small delay for iOS
-    setTimeout(() => {
+    
+    // iOS requires focus to be called synchronously and sometimes needs click() too
+    input.focus();
+    input.click();
+    
+    // Also try with requestAnimationFrame for better iOS compatibility
+    requestAnimationFrame(() => {
         input.focus();
-    }, 100);
+        input.click();
+    });
 }
 
 function closeAddPlayerModal() {
