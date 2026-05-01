@@ -1,5 +1,5 @@
 // Service Worker for Pitching Tracker PWA
-const CACHE_VERSION = 'v1.2.6';
+const CACHE_VERSION = 'v1.2.7';
 const CACHE_NAME = `pitching-tracker-${CACHE_VERSION}`;
 
 const urlsToCache = [
@@ -52,6 +52,12 @@ self.addEventListener('activate', (event) => {
 // Fetch event - network first for HTML, cache first for assets
 self.addEventListener('fetch', (event) => {
     const url = new URL(event.request.url);
+    
+    // Always fetch version.json from network (never cache it)
+    if (url.pathname.endsWith('version.json')) {
+        event.respondWith(fetch(event.request));
+        return;
+    }
     
     // Network-first strategy for HTML files to ensure updates
     if (event.request.headers.get('accept').includes('text/html')) {
