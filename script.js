@@ -36,6 +36,7 @@ let players = [];
 let playerOrder = [];
 let deleteMode = false;
 let use13URules = false;
+let useThreeDayColumn = false;
 
 // Tournament Rules Constants
 const RULES_7U_12U = {
@@ -114,6 +115,12 @@ function loadData() {
         use13URules = JSON.parse(saved13U);
         updateRules();
     }
+    
+    // Load Three Day column setting
+    const savedThreeDay = localStorage.getItem('useThreeDayColumn');
+    if (savedThreeDay !== null) {
+        useThreeDayColumn = JSON.parse(savedThreeDay);
+    }
 }
 
 // Save data to localStorage
@@ -122,6 +129,7 @@ function saveData() {
     localStorage.setItem('pitchingData', JSON.stringify(pitchingData));
     localStorage.setItem('playerOrder', JSON.stringify(playerOrder));
     localStorage.setItem('use13URules', JSON.stringify(use13URules));
+    localStorage.setItem('useThreeDayColumn', JSON.stringify(useThreeDayColumn));
 }
 
 // Calculate remaining innings and status
@@ -251,9 +259,15 @@ function incrementInnings(player, day) {
     
     pitchingData[player][day] = newValue;
     
-    // If Day 1 exceeds 3 innings, clear Day 2 (must rest)
+    // If Day 1 exceeds 3 innings, clear Day 2 and Day 3 (must rest)
     if (day === 'day1' && newValue > RULES.ONE_DAY_MAX_TO_PITCH_NEXT) {
         pitchingData[player]['day2'] = 0;
+        pitchingData[player]['day3'] = 0;
+    }
+    
+    // If Day 2 exceeds 3 innings, clear Day 3 (must rest)
+    if (day === 'day2' && newValue > RULES.ONE_DAY_MAX_TO_PITCH_NEXT) {
+        pitchingData[player]['day3'] = 0;
     }
     
     saveData();
@@ -272,9 +286,20 @@ function decrementInnings(player, day) {
     
     pitchingData[player][day] = newValue;
     
-    // If Day 1 exceeds 3 innings, clear Day 2 (must rest)
+    // If Day 1 exceeds 3 innings, clear Day 2 and Day 3 (must rest)
     if (day === 'day1' && newValue > RULES.ONE_DAY_MAX_TO_PITCH_NEXT) {
         pitchingData[player]['day2'] = 0;
+        pitchingData[player]['day3'] = 0;
+    }
+    
+    // If Day 2 exceeds 3 innings, clear Day 3 (must rest)
+    if (day === 'day2' && newValue > RULES.ONE_DAY_MAX_TO_PITCH_NEXT) {
+        pitchingData[player]['day3'] = 0;
+    }
+    
+    saveData();
+    renderTable();
+}
     }
     
     saveData();
@@ -284,7 +309,15 @@ function decrementInnings(player, day) {
 // Create table rows
 function renderTable() {
     const tbody = document.getElementById('pitchingTableBody');
+    const table = document.getElementById('pitchingTable');
     tbody.innerHTML = '';
+    
+    // Toggle Day 3 column visibility
+    if (useThreeDayColumn) {
+        table.classList.remove('hide-day3');
+    } else {
+        table.classList.add('hide-day3');
+    }
     
     // Show/hide the Remove Player button based on player count
     const deleteBtn = document.getElementById('deleteBtn');
@@ -297,7 +330,7 @@ function renderTable() {
     if (playerOrder.length === 0) {
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td colspan="5" style="text-align: center; padding: 2rem; color: #666;">
+            <td colspan="${useThreeDayColumn ? '6' : '5'}" style="text-align: center; padding: 2rem; color: #666;">
                 No players added yet. Click "Add Player" to get started.
             </td>
         `;
@@ -345,9 +378,11 @@ function renderTable() {
         
         const day1Max = getMaxAllowed(player, 'day1');
         const day2Max = getMaxAllowed(player, 'day2');
+        const day3Max = getMaxAllowed(player, 'day3');
         
-        // Lock Day 1 if Day 2 has any value
+        // Lock Day 1 if Day 2 has any value, Lock Day 2 if Day 3 has any value
         const day1Locked = day2 > 0;
+        const day2Locked = day3 > 0;
         
         row.innerHTML = `
             <td class="drag-handle ${deleteMode ? 'delete-mode' : ''}" ${deleteMode ? `onclick="removePlayer('${player}')"` : ''}>${deleteMode ? '✕' : '☰'}</td>
@@ -365,9 +400,16 @@ function renderTable() {
             </td>
             <td>
                 <div class="innings-counter">
-                    <button class="counter-btn counter-btn-up" onclick="incrementInnings('${player}', 'day2')" ${day2 >= day2Max ? 'disabled' : ''}>▲</button>
+                    <button class="counter-btn counter-btn-up" onclick="incrementInnings('${player}', 'day2')" ${day2 >= day2Max || day2Locked ? 'disabled' : ''}>▲</button>
                     <span class="innings-value">${decimalToFraction(day2)}</span>
-                    <button class="counter-btn counter-btn-down" onclick="decrementInnings('${player}', 'day2')" ${day2 <= 0 ? 'disabled' : ''}>▼</button>
+                    <button class="counter-btn counter-btn-down" onclick="decrementInnings('${player}', 'day2')" ${day2 <= 0 || day2Locked ? 'disabled' : ''}>▼</button>
+                </div>
+            </td>
+            <td>
+                <div class="innings-counter">
+                    <button class="counter-btn counter-btn-up" onclick="incrementInnings('${player}', 'day3')" ${day3 >= day3Max ? 'disabled' : ''}>▲</button>
+                    <span class="innings-value">${decimalToFraction(day3)}</span>
+                    <button class="counter-btn counter-btn-down" onclick="decrementInnings('${player}', 'day3')" ${day3 <= 0 ? 'disabled' : ''}>▼</button>
                 </div>
             </td>
             <td><span class="remaining total-innings ${remainingClass}">${decimalToFraction(inningsRemaining)}</span></td>
@@ -787,6 +829,11 @@ document.addEventListener('DOMContentLoaded', function() {
         checkbox.checked = use13URules;
     }
     
+    const threeDayCheckbox = document.getElementById('useThreeDayColumn');
+    if (threeDayCheckbox) {
+        threeDayCheckbox.checked = useThreeDayColumn;
+    }
+    
     // Lock screen orientation to portrait on mobile devices
     if (screen.orientation && screen.orientation.lock) {
         screen.orientation.lock('portrait').catch(err => {
@@ -848,6 +895,13 @@ function toggle13URules() {
     renderTable();
 }
 
+function toggleThreeDayColumn() {
+    const checkbox = document.getElementById('useThreeDayColumn');
+    useThreeDayColumn = checkbox.checked;
+    saveData();
+    renderTable();
+}
+
 // Render rules list
 function renderRules() {
     const rulesList = document.getElementById('rules-list');
@@ -880,7 +934,8 @@ function shareData() {
         players: players,
         playerOrder: playerOrder,
         pitchingData: pitchingData,
-        use13URules: use13URules
+        use13URules: use13URules,
+        useThreeDayColumn: useThreeDayColumn
     };
     
     // Encode data to base64 URL-safe string
@@ -920,6 +975,7 @@ function loadSharedData() {
         playerOrder = shareData.playerOrder || [];
         pitchingData = shareData.pitchingData || {};
         use13URules = shareData.use13URules || false;
+        useThreeDayColumn = shareData.useThreeDayColumn || false;
         
         // Update rules based on the shared setting
         updateRules();
