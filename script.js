@@ -300,11 +300,6 @@ function decrementInnings(player, day) {
     saveData();
     renderTable();
 }
-    }
-    
-    saveData();
-    renderTable();
-}
 
 // Create table rows
 function renderTable() {
