@@ -122,6 +122,12 @@ function loadData() {
     if (savedThreeDay !== null) {
         useThreeDayColumn = JSON.parse(savedThreeDay);
     }
+    
+    // Load active day setting
+    const savedActiveDay = localStorage.getItem('activeDay');
+    if (savedActiveDay !== null) {
+        activeDay = savedActiveDay;
+    }
 }
 
 // Save data to localStorage
@@ -131,6 +137,7 @@ function saveData() {
     localStorage.setItem('playerOrder', JSON.stringify(playerOrder));
     localStorage.setItem('use13URules', JSON.stringify(use13URules));
     localStorage.setItem('useThreeDayColumn', JSON.stringify(useThreeDayColumn));
+    localStorage.setItem('activeDay', activeDay);
 }
 
 // Calculate remaining innings and status
@@ -339,6 +346,7 @@ function getInningsLeftForDay(player, day) {
 // Set active day and re-render
 function setActiveDay(day) {
     activeDay = day;
+    localStorage.setItem('activeDay', activeDay);
     renderTable();
 }
 
