@@ -20,7 +20,7 @@ body {
     height: 100%;
     padding: 10px;
     padding-top: max(50px, calc(env(safe-area-inset-top) + 40px));
-    padding-bottom: max(10px, env(safe-area-inset-bottom));
+    padding-bottom: 0;
     padding-left: max(10px, env(safe-area-inset-left));
     padding-right: max(10px, env(safe-area-inset-right));
     margin: 0;
@@ -59,7 +59,8 @@ body {
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     padding: 1rem;
-    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    padding-bottom: 0;
+    margin-bottom: 0;
 }
 
 /* Header */
@@ -568,11 +569,17 @@ tbody td:nth-child(5) {
 /* Version */
 .version {
     text-align: center;
-    color: #666;
+    color: white;
     font-size: 0.75rem;
     margin-top: 1rem;
     padding-top: 0.5rem;
-    border-top: 1px solid #e0e0e0;
+    padding-bottom: max(0.5rem, calc(env(safe-area-inset-bottom) + 0.5rem));
+    background: linear-gradient(135deg, #003366 0%, #0066cc 100%);
+    margin-left: -1rem;
+    margin-right: -1rem;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    border-top: none;
 }
 
 /* Modal Styles for Add Player */
@@ -633,11 +640,13 @@ tbody td:nth-child(5) {
     body {
         padding: 5px;
         padding-top: max(50px, calc(env(safe-area-inset-top) + 40px));
+        padding-bottom: 0;
     }
     
     .container {
         padding: 0.75rem;
         padding-top: 1rem;
+        padding-bottom: 0;
         border-radius: 8px;
     }
 
