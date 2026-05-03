@@ -228,6 +228,18 @@ thead th:nth-child(5) {
     width: 60px;
 }
 
+/* Active column header */
+thead th.active-header {
+    background-color: #004d99;
+    font-weight: 700;
+    border-bottom: 3px solid #ffcc00;
+}
+
+/* Active day cell */
+td.active-day {
+    background-color: #e6f2ff;
+}
+
 tbody tr {
     border-bottom: 1px solid #e0e0e0;
     transition: transform 0.1s;

@@ -1,5 +1,5 @@
 // Service Worker for Pitching Tracker PWA
-const CACHE_VERSION = 'v1.5.3';
+const CACHE_VERSION = 'v1.5.4';
 const CACHE_NAME = `pitching-tracker-${CACHE_VERSION}`;
 
 const urlsToCache = [

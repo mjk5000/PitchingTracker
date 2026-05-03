@@ -37,6 +37,7 @@ let playerOrder = [];
 let deleteMode = false;
 let use13URules = false;
 let useThreeDayColumn = false;
+let activeDay = 'day1'; // Track which day column is currently active
 
 // Tournament Rules Constants
 const RULES_7U_12U = {
@@ -301,6 +302,68 @@ function decrementInnings(player, day) {
     renderTable();
 }
 
+// Calculate innings left for a specific day
+function getInningsLeftForDay(player, day) {
+    const data = pitchingData[player];
+    const day1 = parseFloat(data.day1) || 0;
+    const day2 = parseFloat(data.day2) || 0;
+    const day3 = parseFloat(data.day3) || 0;
+    const totalInnings = day1 + day2 + day3;
+    
+    if (day === 'day1') {
+        // Day 1: limited by daily max and tournament total
+        const dailyRemaining = Math.max(0, RULES.ONE_DAY_MAX - day1);
+        const tournamentRemaining = Math.max(0, RULES.THREE_DAY_MAX - totalInnings);
+        return Math.min(dailyRemaining, tournamentRemaining);
+    } else if (day === 'day2') {
+        // Day 2: check rest requirements from Day 1
+        if (day1 > RULES.ONE_DAY_MAX_TO_PITCH_NEXT) {
+            // Must rest - cannot pitch
+            return 0;
+        }
+        // Can pitch: limited by daily max and tournament total
+        const dailyRemaining = Math.max(0, RULES.ONE_DAY_MAX - day2);
+        const tournamentRemaining = Math.max(0, RULES.THREE_DAY_MAX - totalInnings);
+        return Math.min(dailyRemaining, tournamentRemaining);
+    } else { // day3
+        // Day 3: check rest requirements from Day 2
+        if (day2 > RULES.ONE_DAY_MAX_TO_PITCH_NEXT) {
+            // Must rest - cannot pitch
+            return 0;
+        }
+        // Can pitch: limited by daily max and tournament total
+        const dailyRemaining = Math.max(0, RULES.ONE_DAY_MAX - day3);
+        const tournamentRemaining = Math.max(0, RULES.THREE_DAY_MAX - totalInnings);
+        return Math.min(dailyRemaining, tournamentRemaining);
+    }
+}
+
+// Set active day and re-render
+function setActiveDay(day) {
+    activeDay = day;
+    renderTable();
+}
+
+// Update column headers to show which is active
+function updateColumnHeaders() {
+    const day1Header = document.querySelector('th:nth-child(3)'); // Day 1
+    const day2Header = document.querySelector('th:nth-child(4)'); // Day 2
+    const day3Header = document.querySelector('th:nth-child(5)'); // Day 3
+    
+    if (day1Header) {
+        day1Header.className = activeDay === 'day1' ? 'active-header' : '';
+        day1Header.style.cursor = 'pointer';
+    }
+    if (day2Header) {
+        day2Header.className = activeDay === 'day2' ? 'active-header' : '';
+        day2Header.style.cursor = 'pointer';
+    }
+    if (day3Header) {
+        day3Header.className = activeDay === 'day3' ? 'active-header' : '';
+        day3Header.style.cursor = 'pointer';
+    }
+}
+
 // Create table rows
 function renderTable() {
     const tbody = document.getElementById('pitchingTableBody');
@@ -313,6 +376,9 @@ function renderTable() {
     } else {
         table.classList.add('hide-day3');
     }
+    
+    // Update column headers to show which day is active
+    updateColumnHeaders();
     
     // Show/hide the Remove Player button based on player count
     const deleteBtn = document.getElementById('deleteBtn');
@@ -340,31 +406,16 @@ function renderTable() {
         const day1 = parseFloat(data.day1) || 0;
         const day2 = parseFloat(data.day2) || 0;
         const day3 = parseFloat(data.day3) || 0;
-        const totalInnings = day1 + day2 + day3;
         
-        // Calculate innings remaining based on tournament stage
-        let inningsRemaining;
+        // Calculate innings left for the ACTIVE day
+        const inningsLeftForActiveDay = getInningsLeftForDay(player, activeDay);
+        const remainingClass = inningsLeftForActiveDay <= 0 ? 'none' : (inningsLeftForActiveDay <= 2 ? 'low' : '');
         
-        // If Day 1 is locked (Day 2 has innings), show only Day 2 availability
-        if (day2 > 0) {
-            // Limited by both daily max and tournament total
-            const day2DailyRemaining = Math.max(0, RULES.ONE_DAY_MAX - day2);
-            const tournamentRemaining = Math.max(0, RULES.THREE_DAY_MAX - totalInnings);
-            inningsRemaining = Math.min(day2DailyRemaining, tournamentRemaining);
-        } else if (day1 > RULES.ONE_DAY_MAX_TO_PITCH_NEXT) {
-            // If Day 1 > 3 innings, must rest Day 2, show remaining from Day 1 daily max
-            inningsRemaining = Math.max(0, RULES.ONE_DAY_MAX - day1);
-        } else {
-            // Use tournament total for all other cases
-            inningsRemaining = Math.max(0, RULES.THREE_DAY_MAX - totalInnings);
-        }
-        const remainingClass = inningsRemaining <= 0 ? 'none' : (inningsRemaining <= 2 ? 'low' : '');
-        
-        // Determine row status class for coloring
+        // Determine row status class based on active day's availability
         let rowStatusClass = '';
-        if (inningsRemaining <= 0 || day1 > RULES.ONE_DAY_MAX_TO_PITCH_NEXT) {
+        if (inningsLeftForActiveDay <= 0) {
             rowStatusClass = 'row-danger';
-        } else if (day1 >= RULES.ONE_DAY_MAX_TO_PITCH_NEXT || inningsRemaining <= 2) {
+        } else if (inningsLeftForActiveDay <= 2) {
             rowStatusClass = 'row-warning';
         } else {
             rowStatusClass = 'row-ok';
@@ -375,9 +426,43 @@ function renderTable() {
         const day2Max = getMaxAllowed(player, 'day2');
         const day3Max = getMaxAllowed(player, 'day3');
         
-        // Lock Day 1 if Day 2 has any value, Lock Day 2 if Day 3 has any value
-        const day1Locked = day2 > 0;
-        const day2Locked = day3 > 0;
+        // Build day cells - only show arrows for active day
+        let day1Cell, day2Cell, day3Cell;
+        
+        if (activeDay === 'day1') {
+            day1Cell = `
+                <td class="active-day">
+                    <div class="innings-counter">
+                        <button class="counter-btn counter-btn-up" onclick="incrementInnings('${player}', 'day1')" ${day1 >= day1Max ? 'disabled' : ''}>▲</button>
+                        <span class="innings-value">${decimalToFraction(day1)}</span>
+                        <button class="counter-btn counter-btn-down" onclick="decrementInnings('${player}', 'day1')" ${day1 <= 0 ? 'disabled' : ''}>▼</button>
+                    </div>
+                </td>`;
+            day2Cell = `<td><span class="innings-value">${decimalToFraction(day2)}</span></td>`;
+            day3Cell = `<td><span class="innings-value">${decimalToFraction(day3)}</span></td>`;
+        } else if (activeDay === 'day2') {
+            day1Cell = `<td><span class="innings-value">${decimalToFraction(day1)}</span></td>`;
+            day2Cell = `
+                <td class="active-day">
+                    <div class="innings-counter">
+                        <button class="counter-btn counter-btn-up" onclick="incrementInnings('${player}', 'day2')" ${day2 >= day2Max ? 'disabled' : ''}>▲</button>
+                        <span class="innings-value">${decimalToFraction(day2)}</span>
+                        <button class="counter-btn counter-btn-down" onclick="decrementInnings('${player}', 'day2')" ${day2 <= 0 ? 'disabled' : ''}>▼</button>
+                    </div>
+                </td>`;
+            day3Cell = `<td><span class="innings-value">${decimalToFraction(day3)}</span></td>`;
+        } else { // day3
+            day1Cell = `<td><span class="innings-value">${decimalToFraction(day1)}</span></td>`;
+            day2Cell = `<td><span class="innings-value">${decimalToFraction(day2)}</span></td>`;
+            day3Cell = `
+                <td class="active-day">
+                    <div class="innings-counter">
+                        <button class="counter-btn counter-btn-up" onclick="incrementInnings('${player}', 'day3')" ${day3 >= day3Max ? 'disabled' : ''}>▲</button>
+                        <span class="innings-value">${decimalToFraction(day3)}</span>
+                        <button class="counter-btn counter-btn-down" onclick="decrementInnings('${player}', 'day3')" ${day3 <= 0 ? 'disabled' : ''}>▼</button>
+                    </div>
+                </td>`;
+        }
         
         row.innerHTML = `
             <td class="drag-handle ${deleteMode ? 'delete-mode' : ''}" ${deleteMode ? `onclick="removePlayer('${player}')"` : ''}>${deleteMode ? '✕' : '☰'}</td>
@@ -386,28 +471,10 @@ function renderTable() {
                     <span class="player-name" ondblclick="editPlayerName('${player}')">${player}</span>
                 </div>
             </td>
-            <td>
-                <div class="innings-counter">
-                    <button class="counter-btn counter-btn-up" onclick="incrementInnings('${player}', 'day1')" ${day1 >= day1Max || day1Locked ? 'disabled' : ''}>▲</button>
-                    <span class="innings-value">${decimalToFraction(day1)}</span>
-                    <button class="counter-btn counter-btn-down" onclick="decrementInnings('${player}', 'day1')" ${day1 <= 0 || day1Locked ? 'disabled' : ''}>▼</button>
-                </div>
-            </td>
-            <td>
-                <div class="innings-counter">
-                    <button class="counter-btn counter-btn-up" onclick="incrementInnings('${player}', 'day2')" ${day2 >= day2Max || day2Locked ? 'disabled' : ''}>▲</button>
-                    <span class="innings-value">${decimalToFraction(day2)}</span>
-                    <button class="counter-btn counter-btn-down" onclick="decrementInnings('${player}', 'day2')" ${day2 <= 0 || day2Locked ? 'disabled' : ''}>▼</button>
-                </div>
-            </td>
-            <td>
-                <div class="innings-counter">
-                    <button class="counter-btn counter-btn-up" onclick="incrementInnings('${player}', 'day3')" ${day3 >= day3Max ? 'disabled' : ''}>▲</button>
-                    <span class="innings-value">${decimalToFraction(day3)}</span>
-                    <button class="counter-btn counter-btn-down" onclick="decrementInnings('${player}', 'day3')" ${day3 <= 0 ? 'disabled' : ''}>▼</button>
-                </div>
-            </td>
-            <td><span class="remaining total-innings ${remainingClass}">${decimalToFraction(inningsRemaining)}</span></td>
+            ${day1Cell}
+            ${day2Cell}
+            ${day3Cell}
+            <td><span class="remaining total-innings ${remainingClass}">${decimalToFraction(inningsLeftForActiveDay)}</span></td>
         `;
         
         // Add drag and drop event listeners
