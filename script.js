@@ -302,7 +302,8 @@ function decrementInnings(player, day) {
     renderTable();
 }
 
-// Calculate innings left for a specific day
+// Calculate total tournament innings remaining (for Left column display)
+// Shows tournament total remaining, but caps by daily max only on the last day
 function getInningsLeftForDay(player, day) {
     const data = pitchingData[player];
     const day1 = parseFloat(data.day1) || 0;
@@ -310,32 +311,29 @@ function getInningsLeftForDay(player, day) {
     const day3 = parseFloat(data.day3) || 0;
     const totalInnings = day1 + day2 + day3;
     
-    if (day === 'day1') {
-        // Day 1: limited by daily max and tournament total
-        const dailyRemaining = Math.max(0, RULES.ONE_DAY_MAX - day1);
-        const tournamentRemaining = Math.max(0, RULES.THREE_DAY_MAX - totalInnings);
-        return Math.min(dailyRemaining, tournamentRemaining);
-    } else if (day === 'day2') {
-        // Day 2: check rest requirements from Day 1
-        if (day1 > RULES.ONE_DAY_MAX_TO_PITCH_NEXT) {
-            // Must rest - cannot pitch
-            return 0;
-        }
-        // Can pitch: limited by daily max and tournament total
-        const dailyRemaining = Math.max(0, RULES.ONE_DAY_MAX - day2);
-        const tournamentRemaining = Math.max(0, RULES.THREE_DAY_MAX - totalInnings);
-        return Math.min(dailyRemaining, tournamentRemaining);
-    } else { // day3
-        // Day 3: check rest requirements from Day 2
-        if (day2 > RULES.ONE_DAY_MAX_TO_PITCH_NEXT) {
-            // Must rest - cannot pitch
-            return 0;
-        }
-        // Can pitch: limited by daily max and tournament total
-        const dailyRemaining = Math.max(0, RULES.ONE_DAY_MAX - day3);
-        const tournamentRemaining = Math.max(0, RULES.THREE_DAY_MAX - totalInnings);
-        return Math.min(dailyRemaining, tournamentRemaining);
+    // Base tournament remaining
+    const tournamentRemaining = Math.max(0, RULES.THREE_DAY_MAX - totalInnings);
+    
+    // Check rest requirements for active day
+    if (day === 'day2' && day1 > RULES.ONE_DAY_MAX_TO_PITCH_NEXT) {
+        return 0; // Must rest Day 2
     }
+    if (day === 'day3' && day2 > RULES.ONE_DAY_MAX_TO_PITCH_NEXT) {
+        return 0; // Must rest Day 3
+    }
+    
+    // Determine if active day is the last day of the tournament
+    const isLastDay = (day === 'day2' && !useThreeDayColumn) || (day === 'day3' && useThreeDayColumn);
+    
+    if (isLastDay) {
+        // Cap by daily max since it's the last day
+        const inningsPitchedToday = day === 'day2' ? day2 : day3;
+        const dailyRemaining = Math.max(0, RULES.ONE_DAY_MAX - inningsPitchedToday);
+        return Math.min(tournamentRemaining, dailyRemaining);
+    }
+    
+    // Not the last day, show full tournament remaining
+    return tournamentRemaining;
 }
 
 // Set active day and re-render
