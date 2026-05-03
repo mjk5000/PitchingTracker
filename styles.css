@@ -220,16 +220,15 @@ thead th:nth-child(2) {
 }
 
 thead th:nth-child(3),
-thead th:nth-child(4) {
-    width: 140px;
-}
-
+thead th:nth-child(4),
 thead th:nth-child(5) {
-    width: 60px;
+    width: 70px;
+    transition: width 0.2s ease;
 }
 
-/* Active column header */
+/* Active column header gets more width */
 thead th.active-header {
+    width: 140px;
     background-color: #004d99;
     font-weight: 700;
     border-bottom: 3px solid #ffcc00;
@@ -238,6 +237,8 @@ thead th.active-header {
 /* Active day cell */
 td.active-day {
     background-color: #e6f2ff;
+    width: 140px;
+    min-width: 140px;
 }
 
 tbody tr {
@@ -289,14 +290,11 @@ tbody td:nth-child(2) {
 }
 
 tbody td:nth-child(3),
-tbody td:nth-child(4) {
-    width: 140px;
-    min-width: 140px;
-}
-
+tbody td:nth-child(4),
 tbody td:nth-child(5) {
-    width: 60px;
-    min-width: 60px;
+    width: 70px;
+    min-width: 70px;
+    transition: width 0.2s ease;
 }
 
 .player-name-cell {
@@ -688,12 +686,15 @@ tbody td:nth-child(5) {
     }
     
     thead th:nth-child(3),
-    thead th:nth-child(4) {
-        width: 120px;
+    thead th:nth-child(4),
+    thead th:nth-child(5) {
+        width: 60px;
+        transition: width 0.2s ease;
     }
     
-    thead th:nth-child(5) {
-        width: 55px;
+    /* Active column header gets more width on mobile */
+    thead th.active-header {
+        width: 120px;
     }
 
     tbody td {
@@ -713,14 +714,17 @@ tbody td:nth-child(5) {
     }
     
     tbody td:nth-child(3),
-    tbody td:nth-child(4) {
-        width: 120px;
-        min-width: 120px;
+    tbody td:nth-child(4),
+    tbody td:nth-child(5) {
+        width: 60px;
+        min-width: 60px;
+        transition: width 0.2s ease;
     }
     
-    tbody td:nth-child(5) {
-        width: 55px;
-        min-width: 55px;
+    /* Active day cell gets more width on mobile */
+    tbody td.active-day {
+        width: 120px;
+        min-width: 120px;
     }
 
     .delete-player-btn {
