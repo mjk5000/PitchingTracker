@@ -56,7 +56,6 @@ body {
 /* Container */
 .container {
     max-width: 100%;
-    min-height: calc(100dvh - 20px);
     margin: 0 auto 10px auto;
     background: white;
     border-radius: 12px;
