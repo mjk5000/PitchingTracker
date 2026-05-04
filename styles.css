@@ -271,7 +271,7 @@ tbody td:first-child {
     user-select: none;
     font-size: 1.2rem;
     color: #666;
-    padding: 0.5rem 0.4rem;
+    padding: 0.5rem 0.2rem;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
@@ -286,7 +286,7 @@ tbody td:nth-child(2) {
     color: #003366;
     min-width: 200px;
     max-width: 300px;
-    padding: 0.5rem 0.3rem;
+    padding: 0.5rem 0.1rem;
 }
 
 tbody td:nth-child(3),
