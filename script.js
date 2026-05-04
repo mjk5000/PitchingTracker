@@ -444,10 +444,10 @@ function renderTable() {
                         <button class="counter-btn counter-btn-down" onclick="decrementInnings('${player}', 'day1')" ${day1 <= 0 ? 'disabled' : ''}>▼</button>
                     </div>
                 </td>`;
-            day2Cell = `<td><span class="innings-value">${decimalToFraction(day2)}</span></td>`;
-            day3Cell = `<td><span class="innings-value">${decimalToFraction(day3)}</span></td>`;
+            day2Cell = `<td onclick="setActiveDay('day2')" style="cursor: pointer;"><span class="innings-value">${decimalToFraction(day2)}</span></td>`;
+            day3Cell = `<td onclick="setActiveDay('day3')" style="cursor: pointer;"><span class="innings-value">${decimalToFraction(day3)}</span></td>`;
         } else if (activeDay === 'day2') {
-            day1Cell = `<td><span class="innings-value">${decimalToFraction(day1)}</span></td>`;
+            day1Cell = `<td onclick="setActiveDay('day1')" style="cursor: pointer;"><span class="innings-value">${decimalToFraction(day1)}</span></td>`;
             day2Cell = `
                 <td class="active-day">
                     <div class="innings-counter">
@@ -456,10 +456,10 @@ function renderTable() {
                         <button class="counter-btn counter-btn-down" onclick="decrementInnings('${player}', 'day2')" ${day2 <= 0 ? 'disabled' : ''}>▼</button>
                     </div>
                 </td>`;
-            day3Cell = `<td><span class="innings-value">${decimalToFraction(day3)}</span></td>`;
+            day3Cell = `<td onclick="setActiveDay('day3')" style="cursor: pointer;"><span class="innings-value">${decimalToFraction(day3)}</span></td>`;
         } else { // day3
-            day1Cell = `<td><span class="innings-value">${decimalToFraction(day1)}</span></td>`;
-            day2Cell = `<td><span class="innings-value">${decimalToFraction(day2)}</span></td>`;
+            day1Cell = `<td onclick="setActiveDay('day1')" style="cursor: pointer;"><span class="innings-value">${decimalToFraction(day1)}</span></td>`;
+            day2Cell = `<td onclick="setActiveDay('day2')" style="cursor: pointer;"><span class="innings-value">${decimalToFraction(day2)}</span></td>`;
             day3Cell = `
                 <td class="active-day">
                     <div class="innings-counter">
