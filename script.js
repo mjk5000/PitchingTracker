@@ -809,6 +809,100 @@ function submitAddPlayer() {
     closeAddPlayerModal();
 }
 
+// Import shared data functions
+function openImportModal() {
+    const modal = document.getElementById('importModal');
+    const input = document.getElementById('importUrlInput');
+    modal.style.display = 'flex';
+    input.value = '';
+    
+    // iOS requires focus to be called synchronously
+    input.focus();
+    input.click();
+    
+    // Also try with requestAnimationFrame for better iOS compatibility
+    requestAnimationFrame(() => {
+        input.focus();
+        input.click();
+    });
+}
+
+function closeImportModal() {
+    const modal = document.getElementById('importModal');
+    modal.style.display = 'none';
+}
+
+function submitImport() {
+    const input = document.getElementById('importUrlInput');
+    const pastedText = input.value.trim();
+    
+    if (!pastedText) {
+        closeImportModal();
+        return;
+    }
+    
+    try {
+        let encodedData = null;
+        
+        // Check if it's a full URL or just the data parameter
+        if (pastedText.includes('?data=')) {
+            // It's a full URL, extract the data parameter
+            const url = new URL(pastedText);
+            encodedData = url.searchParams.get('data');
+        } else if (pastedText.includes('data=')) {
+            // It might be just the query string
+            const params = new URLSearchParams(pastedText);
+            encodedData = params.get('data');
+        } else {
+            // Assume it's just the encoded data itself
+            encodedData = pastedText;
+        }
+        
+        if (!encodedData) {
+            alert('Could not find data in the pasted text. Please paste the full shared link.');
+            return;
+        }
+        
+        // Decode from base64
+        const jsonString = atob(decodeURIComponent(encodedData));
+        const shareData = JSON.parse(jsonString);
+        
+        // Confirm before loading (this will replace current data display)
+        const confirmed = confirm('Import this shared data? This will replace what you currently see (your saved data is safe).');
+        if (!confirmed) {
+            closeImportModal();
+            return;
+        }
+        
+        // Load the shared data
+        players = shareData.players || [];
+        playerOrder = shareData.playerOrder || [];
+        pitchingData = shareData.pitchingData || {};
+        use13URules = shareData.use13URules || false;
+        useThreeDayColumn = shareData.useThreeDayColumn || false;
+        
+        // Update UI
+        updateRules();
+        const checkbox = document.getElementById('use13URules');
+        if (checkbox) {
+            checkbox.checked = use13URules;
+        }
+        const threeDayCheckbox = document.getElementById('useThreeDayColumn');
+        if (threeDayCheckbox) {
+            threeDayCheckbox.checked = useThreeDayColumn;
+        }
+        
+        renderTable();
+        closeImportModal();
+        
+        alert('Shared data imported successfully! This is temporary - add a player or reset to save new data.');
+        
+    } catch (error) {
+        console.error('Error importing data:', error);
+        alert('Error importing data. Please make sure you pasted a valid shared link.');
+    }
+}
+
 // Edit player name
 function editPlayerName(oldName) {
     const newName = prompt('Edit player name:', oldName);
@@ -916,6 +1010,17 @@ document.addEventListener('DOMContentLoaded', function() {
             if (e.key === 'Enter') {
                 e.preventDefault();
                 submitAddPlayer();
+            }
+        });
+    }
+    
+    // Add Enter key support for import modal
+    const importUrlInput = document.getElementById('importUrlInput');
+    if (importUrlInput) {
+        importUrlInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                submitImport();
             }
         });
     }

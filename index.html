@@ -10,7 +10,7 @@
     <meta name="apple-mobile-web-app-title" content="Pitching Tracker">
     <meta name="mobile-web-app-capable" content="yes">
     <title>USSSA Pitching Tracker</title>
-    <link rel="stylesheet" href="styles.css?v=1.5.7">
+    <link rel="stylesheet" href="styles.css?v=1.5.8">
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/svg+xml" href="icon.svg">
     <link rel="apple-touch-icon" href="icon.svg">
@@ -43,6 +43,7 @@
             <button onclick="addPlayer()" class="btn-primary">Add Player</button>
             <button onclick="toggleDeleteMode()" class="btn-delete" id="deleteBtn">Remove Player</button>
             <button onclick="shareData()" class="btn-share">Share</button>
+            <button onclick="openImportModal()" class="btn-share">Import</button>
             <button onclick="resetAllData()" class="btn-secondary">Reset All Data</button>
         </div>
 
@@ -76,7 +77,7 @@
         </div>
         
         <div class="version">
-            v1.5.7
+            v1.5.8
         </div>
     </div>
 
@@ -92,7 +93,20 @@
         </div>
     </div>
 
-    <script src="script.js?v=1.5.7"></script>
+    <!-- Import Data Modal -->
+    <div id="importModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h3>Import Shared Data</h3>
+            <p style="font-size: 0.9rem; color: #666; margin-bottom: 1rem;">Paste the shared link below to load someone else's pitching data.</p>
+            <input type="text" id="importUrlInput" placeholder="Paste shared link here" autocomplete="off" inputmode="url">
+            <div class="modal-buttons">
+                <button onclick="submitImport()" class="btn-primary">Import</button>
+                <button onclick="closeImportModal()" class="btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js?v=1.5.8"></script>
     <script>
         // Register service worker for PWA functionality and auto-updates
         if ('serviceWorker' in navigator) {
@@ -118,7 +132,7 @@
                     });
                     const data = await response.json();
                     const remoteVersion = data.version;
-                    const currentVersion = '1.5.7';
+                    const currentVersion = '1.5.8';
                     console.log('Current:', currentVersion, 'Remote:', remoteVersion);
                     if (remoteVersion !== currentVersion) {
                         console.log('Version mismatch, forcing reload');
@@ -137,7 +151,7 @@
             
             window.addEventListener('load', () => {
                 // Register service worker
-                navigator.serviceWorker.register('./sw.js?v=1.5.7')
+                navigator.serviceWorker.register('./sw.js?v=1.5.8')
                     .then(registration => {
                         console.log('ServiceWorker registered:', registration);
                         
