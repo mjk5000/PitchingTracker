@@ -491,6 +491,30 @@ function renderTable() {
         // Query for the drag handle after innerHTML is set
         const dragHandle = row.querySelector('.drag-handle');
         
+        // Add long-press support to player name for editing
+        const playerNameSpan = row.querySelector('.player-name');
+        let longPressTimer = null;
+        
+        playerNameSpan.addEventListener('touchstart', (e) => {
+            longPressTimer = setTimeout(() => {
+                editPlayerName(player);
+            }, 500); // 500ms long press
+        }, { passive: true });
+        
+        playerNameSpan.addEventListener('touchend', () => {
+            if (longPressTimer) {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            }
+        }, { passive: true });
+        
+        playerNameSpan.addEventListener('touchmove', () => {
+            if (longPressTimer) {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            }
+        }, { passive: true });
+        
         // Only enable dragging if not in delete mode
         if (!deleteMode) {
             dragHandle.setAttribute('draggable', 'true');
@@ -895,9 +919,39 @@ function submitImport() {
 }
 
 // Edit player name
+let currentEditingPlayer = null;
+
 function editPlayerName(oldName) {
-    const newName = prompt('Edit player name:', oldName);
-    if (!newName || newName === oldName) return;
+    currentEditingPlayer = oldName;
+    const modal = document.getElementById('editPlayerModal');
+    const input = document.getElementById('editPlayerNameInput');
+    input.value = oldName;
+    modal.style.display = 'flex';
+    
+    // Focus and select the text after a brief delay to ensure modal is visible
+    setTimeout(() => {
+        input.focus();
+        input.select();
+    }, 100);
+}
+
+function closeEditPlayerModal() {
+    const modal = document.getElementById('editPlayerModal');
+    modal.style.display = 'none';
+    const input = document.getElementById('editPlayerNameInput');
+    input.value = '';
+    currentEditingPlayer = null;
+}
+
+function submitEditPlayer() {
+    const input = document.getElementById('editPlayerNameInput');
+    const newName = input.value;
+    const oldName = currentEditingPlayer;
+    
+    if (!newName || newName === oldName) {
+        closeEditPlayerModal();
+        return;
+    }
     
     const trimmedName = newName.trim();
     if (!trimmedName) {
@@ -927,6 +981,7 @@ function editPlayerName(oldName) {
     delete pitchingData[oldName];
     
     saveData();
+    closeEditPlayerModal();
     renderTable();
 }
 
@@ -1012,6 +1067,17 @@ document.addEventListener('DOMContentLoaded', function() {
             if (e.key === 'Enter') {
                 e.preventDefault();
                 submitImport();
+            }
+        });
+    }
+    
+    // Add Enter key support for edit player modal
+    const editPlayerNameInput = document.getElementById('editPlayerNameInput');
+    if (editPlayerNameInput) {
+        editPlayerNameInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                submitEditPlayer();
             }
         });
     }
