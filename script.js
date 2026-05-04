@@ -867,13 +867,6 @@ function submitImport() {
         const jsonString = atob(decodeURIComponent(encodedData));
         const shareData = JSON.parse(jsonString);
         
-        // Confirm before loading (this will replace current data display)
-        const confirmed = confirm('Import this shared data? This will replace what you currently see (your saved data is safe).');
-        if (!confirmed) {
-            closeImportModal();
-            return;
-        }
-        
         // Load the shared data
         players = shareData.players || [];
         playerOrder = shareData.playerOrder || [];
@@ -894,8 +887,6 @@ function submitImport() {
         
         renderTable();
         closeImportModal();
-        
-        alert('Shared data imported successfully! This is temporary - add a player or reset to save new data.');
         
     } catch (error) {
         console.error('Error importing data:', error);
