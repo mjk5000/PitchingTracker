@@ -20,12 +20,20 @@ body {
     min-height: 100dvh;
     padding: 10px;
     padding-top: max(50px, calc(env(safe-area-inset-top) + 40px));
-    padding-bottom: max(20px, env(safe-area-inset-bottom));
+    padding-bottom: 10px;
     padding-left: max(10px, env(safe-area-inset-left));
     padding-right: max(10px, env(safe-area-inset-right));
     margin: 0;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent iOS Safari UI from affecting layout */
+@supports (padding: max(0px)) {
+    body {
+        padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+        padding-top: max(50px, calc(env(safe-area-inset-top) + 40px));
+    }
 }
 
 /* Prevent landscape on mobile */
@@ -54,14 +62,12 @@ body {
 /* Container */
 .container {
     max-width: 100%;
-    margin: 0 auto 10px auto;
+    margin: 0 auto;
     background: white;
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     padding: 1rem;
     padding-bottom: 1rem;
-    min-height: calc(100vh - 20px);
-    min-height: calc(100dvh - 20px);
 }
 
 /* Header */
