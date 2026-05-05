@@ -631,7 +631,7 @@ function renderLittleLeagueTable() {
         <th></th>
         <th>Player</th>
         <th onclick="setActiveLLColumn('age')" style="cursor: pointer;">Age</th>
-        <th onclick="setActiveLLColumn('dayOfWeek')" style="cursor: pointer;">Day of Week</th>
+        <th onclick="setActiveLLColumn('dayOfWeek')" style="cursor: pointer;">Day</th>
         <th onclick="setActiveLLColumn('pitches')" style="cursor: pointer;">Pitches</th>
         <th>Next Available</th>
     `;
