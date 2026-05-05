@@ -10,7 +10,7 @@
     <meta name="apple-mobile-web-app-title" content="Pitching Tracker">
     <meta name="mobile-web-app-capable" content="yes">
     <title id="app-title">USSSA Pitching Tracker</title>
-    <link rel="stylesheet" href="styles.css?v=2.2.9">
+    <link rel="stylesheet" href="styles.css?v=2.3.0">
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/svg+xml" href="icon.svg">
     <link rel="apple-touch-icon" href="icon.svg">
@@ -98,7 +98,7 @@
         </div>
         
         <div class="version">
-            v2.2.9
+            v2.3.0
         </div>
     </div>
 
@@ -152,7 +152,7 @@
         </div>
     </div>
 
-    <script src="script.js?v=2.2.9"></script>
+    <script src="script.js?v=2.3.0"></script>
     <script>
         // Register service worker for PWA functionality and auto-updates
         if ('serviceWorker' in navigator) {
@@ -178,7 +178,7 @@
                     });
                     const data = await response.json();
                     const remoteVersion = data.version;
-                    const currentVersion = '2.2.9';
+                    const currentVersion = '2.3.0';
                     console.log('Current:', currentVersion, 'Remote:', remoteVersion);
                     if (remoteVersion !== currentVersion) {
                         console.log('Version mismatch, forcing update');
