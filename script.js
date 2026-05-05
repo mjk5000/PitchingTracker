@@ -706,7 +706,7 @@ function renderLittleLeagueTable() {
         <th onclick="setActiveLLColumn('age')" style="cursor: pointer;">Age</th>
         <th onclick="setActiveLLColumn('dayOfWeek')" style="cursor: pointer;">Day</th>
         <th onclick="setActiveLLColumn('pitches')" style="cursor: pointer;">Pitches</th>
-        <th>Next</th>
+        <th>Next Available</th>
     `;
     
     // Update column headers to show which is active
