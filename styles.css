@@ -22,7 +22,7 @@ body {
     min-height: 110dvh;
     padding: 10px;
     padding-top: max(50px, calc(env(safe-area-inset-top) + 40px));
-    padding-bottom: max(20px, env(safe-area-inset-bottom));
+    padding-bottom: max(60px, env(safe-area-inset-bottom));
     padding-left: max(10px, env(safe-area-inset-left));
     padding-right: max(10px, env(safe-area-inset-right));
     margin: 0;
@@ -33,7 +33,7 @@ body {
 /* Prevent iOS Safari UI from affecting layout */
 @supports (padding: max(0px)) {
     body {
-        padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+        padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(60px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
         padding-top: max(50px, calc(env(safe-area-inset-top) + 40px));
     }
 }
@@ -69,7 +69,7 @@ body {
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     padding: 1rem;
-    padding-bottom: 1rem;
+    padding-bottom: 3rem;
 }
 
 /* Header */
