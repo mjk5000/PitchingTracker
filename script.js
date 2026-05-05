@@ -472,6 +472,13 @@ function setActiveDay(day) {
     renderTable();
 }
 
+// Set active Little League column and re-render
+function setActiveLLColumn(column) {
+    activeLLColumn = column;
+    saveData();
+    renderTable();
+}
+
 // ============ LITTLE LEAGUE FUNCTIONS ============
 
 // Get LL rules for a specific age
@@ -1191,39 +1198,23 @@ function removePlayer(playerName) {
 // Add a new player
 function addPlayer() {
     if (useLittleLeague) {
-        // For LL mode, need to get both name and age
-        const playerName = prompt('Enter player name:');
-        if (!playerName) return;
+        // For LL mode, show modal with name and age inputs
+        const modal = document.getElementById('addLLPlayerModal');
+        const nameInput = document.getElementById('llPlayerNameInput');
+        const ageInput = document.getElementById('llPlayerAgeInput');
+        modal.style.display = 'flex';
+        nameInput.value = '';
+        ageInput.value = '12';
         
-        const trimmedName = playerName.trim();
-        if (!trimmedName) {
-            alert('Player name cannot be empty');
-            return;
-        }
+        // iOS requires focus to be called synchronously
+        nameInput.focus();
+        nameInput.click();
         
-        if (llPlayers.includes(trimmedName)) {
-            alert('Player already exists');
-            return;
-        }
-        
-        const age = prompt('Enter player age (7-16):', '12');
-        if (!age) return;
-        
-        const ageNum = parseInt(age);
-        if (isNaN(ageNum) || ageNum < 7 || ageNum > 16) {
-            alert('Please enter a valid age between 7 and 16');
-            return;
-        }
-        
-        llPlayers.push(trimmedName);
-        llPlayerOrder.push(trimmedName);
-        players = llPlayers;
-        playerOrder = llPlayerOrder;
-        playerAges[trimmedName] = ageNum;
-        llPitchData[trimmedName] = { pitches: 0 };
-        
-        saveData();
-        renderTable();
+        // Also try with requestAnimationFrame for better iOS compatibility
+        requestAnimationFrame(() => {
+            nameInput.focus();
+            nameInput.click();
+        });
         return;
     }
     
@@ -1248,6 +1239,51 @@ function addPlayer() {
 function closeAddPlayerModal() {
     const modal = document.getElementById('addPlayerModal');
     modal.style.display = 'none';
+}
+
+function closeAddLLPlayerModal() {
+    const modal = document.getElementById('addLLPlayerModal');
+    modal.style.display = 'none';
+}
+
+function submitAddLLPlayer() {
+    const nameInput = document.getElementById('llPlayerNameInput');
+    const ageInput = document.getElementById('llPlayerAgeInput');
+    const playerName = nameInput.value;
+    const ageValue = ageInput.value;
+    
+    if (!playerName) {
+        closeAddLLPlayerModal();
+        return;
+    }
+    
+    const trimmedName = playerName.trim();
+    if (!trimmedName) {
+        alert('Player name cannot be empty');
+        return;
+    }
+    
+    if (llPlayers.includes(trimmedName)) {
+        alert('Player already exists');
+        return;
+    }
+    
+    const ageNum = parseInt(ageValue);
+    if (isNaN(ageNum) || ageNum < 7 || ageNum > 16) {
+        alert('Please enter a valid age between 7 and 16');
+        return;
+    }
+    
+    llPlayers.push(trimmedName);
+    llPlayerOrder.push(trimmedName);
+    players = llPlayers;
+    playerOrder = llPlayerOrder;
+    playerAges[trimmedName] = ageNum;
+    llPitchData[trimmedName] = { pitches: 0 };
+    
+    saveData();
+    renderTable();
+    closeAddLLPlayerModal();
 }
 
 function submitAddPlayer() {
