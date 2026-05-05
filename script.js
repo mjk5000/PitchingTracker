@@ -541,11 +541,8 @@ function renderLittleLeagueTable() {
         <th>Player</th>
         <th>Age</th>
         <th>Day 1 Pitches</th>
-        <th>Can Catch?</th>
         <th>Day 2 Pitches</th>
-        <th>Can Catch?</th>
         <th>Day 3 Pitches</th>
-        <th>Can Catch?</th>
         <th>Next Available</th>
     `;
     
@@ -560,7 +557,7 @@ function renderLittleLeagueTable() {
     if (playerOrder.length === 0) {
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td colspan="10" style="text-align: center; padding: 2rem; color: #666;">
+            <td colspan="7" style="text-align: center; padding: 2rem; color: #666;">
                 No players added yet. Click "Add Player" to get started.
             </td>
         `;
@@ -580,26 +577,17 @@ function renderLittleLeagueTable() {
         const day2Pitches = data.day2?.pitches || 0;
         const day3Pitches = data.day3?.pitches || 0;
         
-        const day1CaughtAfter = data.day1?.caughtAfter || false;
-        const day2CaughtAfter = data.day2?.caughtAfter || false;
-        const day3CaughtAfter = data.day3?.caughtAfter || false;
-        
-        // Calculate catcher eligibility
-        const canCatchDay1 = canCatchAfterPitching(day1Pitches);
-        const canCatchDay2 = canCatchAfterPitching(day2Pitches);
-        const canCatchDay3 = canCatchAfterPitching(day3Pitches);
-        
         // Calculate next available day (simplified for display)
-        let nextAvailable = 'Day 2';
+        let nextAvailable = 'Available';
         if (day1Pitches > 0) {
             const restDays = getRestDaysRequired(day1Pitches, age);
-            if (restDays === 0) nextAvailable = 'Day 2';
+            if (restDays === 0) nextAvailable = 'Available';
             else if (restDays === 1) nextAvailable = 'Day 3';
             else nextAvailable = `${restDays+1} days`;
         }
         if (day2Pitches > 0) {
             const restDays = getRestDaysRequired(day2Pitches, age);
-            if (restDays === 0) nextAvailable = 'Day 3';
+            if (restDays === 0) nextAvailable = 'Available';
             else if (restDays === 1) nextAvailable = '2 days';
             else nextAvailable = `${restDays+1} days`;
         }
@@ -626,11 +614,6 @@ function renderLittleLeagueTable() {
                     <button class="counter-btn counter-btn-down" onclick="decrementLLPitches('${player}', 'day1')" ${day1Pitches <= 0 ? 'disabled' : ''}>▼</button>
                 </div>
             </td>
-            <td style="text-align: center;">
-                <button class="btn-secondary" onclick="toggleLLCatcher('${player}', 'day1')" style="font-size: 0.8rem; padding: 0.3rem 0.5rem;" ${!canCatchDay1 || day1Pitches === 0 ? 'disabled' : ''}>
-                    ${day1CaughtAfter ? '✓ Yes' : 'No'}
-                </button>
-            </td>
             <td>
                 <div class="innings-counter">
                     <button class="counter-btn counter-btn-up" onclick="incrementLLPitches('${player}', 'day2')" ${day2Pitches >= rules.max ? 'disabled' : ''}>▲</button>
@@ -638,22 +621,12 @@ function renderLittleLeagueTable() {
                     <button class="counter-btn counter-btn-down" onclick="decrementLLPitches('${player}', 'day2')" ${day2Pitches <= 0 ? 'disabled' : ''}>▼</button>
                 </div>
             </td>
-            <td style="text-align: center;">
-                <button class="btn-secondary" onclick="toggleLLCatcher('${player}', 'day2')" style="font-size: 0.8rem; padding: 0.3rem 0.5rem;" ${!canCatchDay2 || day2Pitches === 0 ? 'disabled' : ''}>
-                    ${day2CaughtAfter ? '✓ Yes' : 'No'}
-                </button>
-            </td>
             <td>
                 <div class="innings-counter">
                     <button class="counter-btn counter-btn-up" onclick="incrementLLPitches('${player}', 'day3')" ${day3Pitches >= rules.max ? 'disabled' : ''}>▲</button>
                     <span class="innings-value">${day3Pitches}</span>
                     <button class="counter-btn counter-btn-down" onclick="decrementLLPitches('${player}', 'day3')" ${day3Pitches <= 0 ? 'disabled' : ''}>▼</button>
                 </div>
-            </td>
-            <td style="text-align: center;">
-                <button class="btn-secondary" onclick="toggleLLCatcher('${player}', 'day3')" style="font-size: 0.8rem; padding: 0.3rem 0.5rem;" ${!canCatchDay3 || day3Pitches === 0 ? 'disabled' : ''}>
-                    ${day3CaughtAfter ? '✓ Yes' : 'No'}
-                </button>
             </td>
             <td style="text-align: center; font-weight: bold;">${nextAvailable}</td>
         `;
@@ -700,9 +673,19 @@ function renderTable() {
         return;
     }
     
-    // Original USSSA rendering code
-    const tbody = document.getElementById('pitchingTableBody');
+    // Original USSSA rendering code - restore USSSA header
     const table = document.getElementById('pitchingTable');
+    const thead = table.querySelector('thead tr');
+    thead.innerHTML = `
+        <th></th>
+        <th>Player</th>
+        <th onclick="setActiveDay('day1')" style="cursor: pointer;">Day 1</th>
+        <th onclick="setActiveDay('day2')" style="cursor: pointer;">Day 2</th>
+        <th onclick="setActiveDay('day3')" style="cursor: pointer;">Day 3</th>
+        <th>Left</th>
+    `;
+    
+    const tbody = document.getElementById('pitchingTableBody');
     tbody.innerHTML = '';
     
     // Toggle Day 3 column visibility
@@ -1577,7 +1560,6 @@ function renderRules() {
         if (rulesTitle) {
             rulesTitle.textContent = 'Quick Reference Rules (Little League)';
         }
-        
         if (rulesList) {
             rulesList.innerHTML = `
                 <li><strong>Ages 7-8:</strong> 50 pitches max per day</li>
