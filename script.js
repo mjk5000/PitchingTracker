@@ -633,18 +633,26 @@ function renderLittleLeagueTable() {
         <th onclick="setActiveLLColumn('age')" style="cursor: pointer;">Age</th>
         <th onclick="setActiveLLColumn('dayOfWeek')" style="cursor: pointer;">Day</th>
         <th onclick="setActiveLLColumn('pitches')" style="cursor: pointer;">Pitches</th>
-        <th>Next Available</th>
+        <th>Next</th>
     `;
     
     // Update column headers to show which is active
     updateLLColumnHeaders();
     
-    // Show/hide the Remove Player button
+    // Always ensure the Remove Player button is visible and properly labeled
     const deleteBtn = document.getElementById('deleteBtn');
-    if (playerOrder.length === 0) {
-        deleteBtn.style.display = 'none';
-    } else {
-        deleteBtn.style.display = '';
+    if (deleteBtn) {
+        if (playerOrder.length === 0) {
+            deleteBtn.style.display = 'none';
+        } else {
+            deleteBtn.style.display = '';
+            deleteBtn.style.visibility = 'visible';
+            // Ensure text is correct if not in delete mode
+            if (!deleteMode) {
+                deleteBtn.textContent = 'Remove Player';
+                deleteBtn.classList.remove('active');
+            }
+        }
     }
     
     if (playerOrder.length === 0) {
@@ -804,12 +812,20 @@ function renderTable() {
     // Update column headers to show which day is active
     updateColumnHeaders();
     
-    // Show/hide the Remove Player button based on player count
+    // Always ensure the Remove Player button is visible and properly labeled
     const deleteBtn = document.getElementById('deleteBtn');
-    if (playerOrder.length === 0) {
-        deleteBtn.style.display = 'none';
-    } else {
-        deleteBtn.style.display = '';
+    if (deleteBtn) {
+        if (playerOrder.length === 0) {
+            deleteBtn.style.display = 'none';
+        } else {
+            deleteBtn.style.display = '';
+            deleteBtn.style.visibility = 'visible';
+            // Ensure text is correct if not in delete mode
+            if (!deleteMode) {
+                deleteBtn.textContent = 'Remove Player';
+                deleteBtn.classList.remove('active');
+            }
+        }
     }
     
     if (playerOrder.length === 0) {
