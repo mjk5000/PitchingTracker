@@ -1409,15 +1409,28 @@ function submitImport() {
         const shareData = JSON.parse(jsonString);
         
         // Load the shared data
-        players = shareData.players || [];
-        playerOrder = shareData.playerOrder || [];
+        usssaPlayers = shareData.usssaPlayers || [];
+        usssaPlayerOrder = shareData.usssaPlayerOrder || [];
+        llPlayers = shareData.llPlayers || [];
+        llPlayerOrder = shareData.llPlayerOrder || [];
         pitchingData = shareData.pitchingData || {};
         use13URules = shareData.use13URules || false;
         useThreeDayColumn = shareData.useThreeDayColumn || false;
+        activeDay = shareData.activeDay || 'day1';
+        activeLLColumn = shareData.activeLLColumn || 'pitches';
         useLittleLeague = shareData.useLittleLeague || false;
         playerAges = shareData.playerAges || {};
         llPitchData = shareData.llPitchData || {};
         llDayOfWeek = shareData.llDayOfWeek || {};
+        
+        // Set current mode references
+        if (useLittleLeague) {
+            players = llPlayers;
+            playerOrder = llPlayerOrder;
+        } else {
+            players = usssaPlayers;
+            playerOrder = usssaPlayerOrder;
+        }
         
         // Update UI
         updateRules();
@@ -1787,11 +1800,15 @@ function shareData() {
     
     // Create data object to share
     const shareData = {
-        players: players,
-        playerOrder: playerOrder,
+        usssaPlayers: usssaPlayers,
+        usssaPlayerOrder: usssaPlayerOrder,
+        llPlayers: llPlayers,
+        llPlayerOrder: llPlayerOrder,
         pitchingData: pitchingData,
         use13URules: use13URules,
         useThreeDayColumn: useThreeDayColumn,
+        activeDay: activeDay,
+        activeLLColumn: activeLLColumn,
         useLittleLeague: useLittleLeague,
         playerAges: playerAges,
         llPitchData: llPitchData,
@@ -1831,15 +1848,28 @@ function loadSharedData() {
         const shareData = JSON.parse(jsonString);
         
         // Load the shared data
-        players = shareData.players || [];
-        playerOrder = shareData.playerOrder || [];
+        usssaPlayers = shareData.usssaPlayers || [];
+        usssaPlayerOrder = shareData.usssaPlayerOrder || [];
+        llPlayers = shareData.llPlayers || [];
+        llPlayerOrder = shareData.llPlayerOrder || [];
         pitchingData = shareData.pitchingData || {};
         use13URules = shareData.use13URules || false;
         useThreeDayColumn = shareData.useThreeDayColumn || false;
+        activeDay = shareData.activeDay || 'day1';
+        activeLLColumn = shareData.activeLLColumn || 'pitches';
         useLittleLeague = shareData.useLittleLeague || false;
         playerAges = shareData.playerAges || {};
         llPitchData = shareData.llPitchData || {};
         llDayOfWeek = shareData.llDayOfWeek || {};
+        
+        // Set current mode references
+        if (useLittleLeague) {
+            players = llPlayers;
+            playerOrder = llPlayerOrder;
+        } else {
+            players = usssaPlayers;
+            playerOrder = usssaPlayerOrder;
+        }
         
         // Update rules based on the shared setting
         updateRules();
