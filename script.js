@@ -633,6 +633,9 @@ function renderLittleLeagueTable() {
     const table = document.getElementById('pitchingTable');
     tbody.innerHTML = '';
     
+    // Remove USSSA-specific classes (hide-day3 would hide the Pitches column)
+    table.classList.remove('hide-day3');
+    
     // Update table header for LL mode
     const thead = table.querySelector('thead tr');
     thead.innerHTML = `
