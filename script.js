@@ -581,9 +581,10 @@ function decrementLLPitches(player) {
 
 // Update column headers to show which is active (for Little League mode)
 function updateLLColumnHeaders() {
-    const ageHeader = document.querySelector('th:nth-child(3)');
-    const dayOfWeekHeader = document.querySelector('th:nth-child(4)');
-    const pitchesHeader = document.querySelector('th:nth-child(5)');
+    const table = document.getElementById('pitchingTable');
+    const ageHeader = table.querySelector('thead th:nth-child(3)');
+    const dayOfWeekHeader = table.querySelector('thead th:nth-child(4)');
+    const pitchesHeader = table.querySelector('thead th:nth-child(5)');
     
     // Only highlight active column if there are players
     const hasPlayers = playerOrder.length > 0;
@@ -604,9 +605,10 @@ function updateLLColumnHeaders() {
 
 // Update column headers to show which is active (for USSSA mode)
 function updateColumnHeaders() {
-    const day1Header = document.querySelector('th:nth-child(3)');
-    const day2Header = document.querySelector('th:nth-child(4)');
-    const day3Header = document.querySelector('th:nth-child(5)');
+    const table = document.getElementById('pitchingTable');
+    const day1Header = table.querySelector('thead th:nth-child(3)');
+    const day2Header = table.querySelector('thead th:nth-child(4)');
+    const day3Header = table.querySelector('thead th:nth-child(5)');
     
     // Only highlight active column if there are players
     const hasPlayers = playerOrder.length > 0;
