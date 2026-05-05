@@ -1668,6 +1668,7 @@ function deletePlayer(playerName) {
 // Reset all data
 function resetAllData() {
     if (confirm('Reset all pitching data?')) {
+        // Reset USSSA data
         players.forEach(player => {
             pitchingData[player] = {
                 day1: 0,
@@ -1675,6 +1676,14 @@ function resetAllData() {
                 day3: 0
             };
         });
+        
+        // Reset Little League data
+        llPlayers.forEach(player => {
+            llPitchData[player] = { pitches: 0 };
+            llDayOfWeek[player] = 'Mon';
+            playerAges[player] = 12;
+        });
+        
         saveData();
         renderTable();
     }
