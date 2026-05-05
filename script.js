@@ -1263,9 +1263,29 @@ function submitImport() {
         if (threeDayCheckbox) {
             threeDayCheckbox.checked = useThreeDayColumn;
         }
-        const llCheckbox = document.getElementById('useLittleLeague');
-        if (llCheckbox) {
-            llCheckbox.checked = useLittleLeague;
+        
+        // Set radio buttons for mode
+        const usssaRadio = document.getElementById('usssaMode');
+        const llRadio = document.getElementById('littleLeagueMode');
+        if (useLittleLeague && llRadio) {
+            llRadio.checked = true;
+        } else if (usssaRadio) {
+            usssaRadio.checked = true;
+        }
+        
+        // Update UI visibility
+        const title = document.getElementById('app-title');
+        const header = document.getElementById('app-header');
+        const usssaSettings = document.getElementById('usssa-settings');
+        
+        if (useLittleLeague) {
+            if (title) title.textContent = 'Little League Pitching Tracker';
+            if (header) header.textContent = 'Little League Pitching Tracker';
+            if (usssaSettings) usssaSettings.style.display = 'none';
+        } else {
+            if (title) title.textContent = 'USSSA Pitching Tracker';
+            if (header) header.textContent = 'USSSA Pitching Tracker';
+            if (usssaSettings) usssaSettings.style.display = 'block';
         }
         
         renderTable();
@@ -1401,9 +1421,13 @@ document.addEventListener('DOMContentLoaded', function() {
         threeDayCheckbox.checked = useThreeDayColumn;
     }
     
-    const llCheckbox = document.getElementById('useLittleLeague');
-    if (llCheckbox) {
-        llCheckbox.checked = useLittleLeague;
+    // Set radio button state
+    const usssaRadio = document.getElementById('usssaMode');
+    const llRadio = document.getElementById('littleLeagueMode');
+    if (useLittleLeague) {
+        if (llRadio) llRadio.checked = true;
+    } else {
+        if (usssaRadio) usssaRadio.checked = true;
     }
     
     // Update app title and header based on mode
@@ -1511,10 +1535,13 @@ function toggleThreeDayColumn() {
     renderTable();
 }
 
-// Toggle Little League mode
-function toggleLittleLeague() {
-    const checkbox = document.getElementById('useLittleLeague');
-    useLittleLeague = checkbox.checked;
+// Toggle League mode (radio button handler)
+function toggleLeagueMode() {
+    const usssaRadio = document.getElementById('usssaMode');
+    const llRadio = document.getElementById('littleLeagueMode');
+    
+    // Determine which mode is selected
+    useLittleLeague = llRadio.checked;
     
     // Update app title and header
     const title = document.getElementById('app-title');
