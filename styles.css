@@ -623,9 +623,11 @@ tbody td:nth-child(5) {
     margin-top: 1rem;
     padding-top: 0.5rem;
     padding-bottom: max(0.5rem, calc(env(safe-area-inset-bottom) + 0.5rem));
+    background: linear-gradient(135deg, #003366 0%, #0066cc 100%);
     margin-left: -1rem;
     margin-right: -1rem;
     margin-bottom: -1rem;
+    padding-bottom: 0.5rem;
     border-bottom-left-radius: 12px;
     border-bottom-right-radius: 12px;
     user-select: none;
