@@ -251,6 +251,11 @@ thead th:nth-child(5) {
     min-width: 140px;
 }
 
+/* Last column (Left/Next Available) */
+thead th:nth-child(6) {
+    min-width: 100px;
+}
+
 /* Active column header styling (no width change) */
 thead th.active-header {
     background-color: #004d99;
@@ -316,6 +321,11 @@ tbody td:nth-child(4),
 tbody td:nth-child(5) {
     width: 140px;
     min-width: 140px;
+}
+
+/* Last column (Left/Next Available) */
+tbody td:nth-child(6) {
+    min-width: 100px;
 }
 
 .player-name-cell {
