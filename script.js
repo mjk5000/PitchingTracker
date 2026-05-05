@@ -585,16 +585,19 @@ function updateLLColumnHeaders() {
     const dayOfWeekHeader = document.querySelector('th:nth-child(4)');
     const pitchesHeader = document.querySelector('th:nth-child(5)');
     
+    // Only highlight active column if there are players
+    const hasPlayers = playerOrder.length > 0;
+    
     if (ageHeader) {
-        ageHeader.className = activeLLColumn === 'age' ? 'active-header' : '';
+        ageHeader.className = (hasPlayers && activeLLColumn === 'age') ? 'active-header' : '';
         ageHeader.style.cursor = 'pointer';
     }
     if (dayOfWeekHeader) {
-        dayOfWeekHeader.className = activeLLColumn === 'dayOfWeek' ? 'active-header' : '';
+        dayOfWeekHeader.className = (hasPlayers && activeLLColumn === 'dayOfWeek') ? 'active-header' : '';
         dayOfWeekHeader.style.cursor = 'pointer';
     }
     if (pitchesHeader) {
-        pitchesHeader.className = activeLLColumn === 'pitches' ? 'active-header' : '';
+        pitchesHeader.className = (hasPlayers && activeLLColumn === 'pitches') ? 'active-header' : '';
         pitchesHeader.style.cursor = 'pointer';
     }
 }
@@ -605,16 +608,19 @@ function updateColumnHeaders() {
     const day2Header = document.querySelector('th:nth-child(4)');
     const day3Header = document.querySelector('th:nth-child(5)');
     
+    // Only highlight active column if there are players
+    const hasPlayers = playerOrder.length > 0;
+    
     if (day1Header) {
-        day1Header.className = activeDay === 'day1' ? 'active-header' : '';
+        day1Header.className = (hasPlayers && activeDay === 'day1') ? 'active-header' : '';
         day1Header.style.cursor = 'pointer';
     }
     if (day2Header) {
-        day2Header.className = activeDay === 'day2' ? 'active-header' : '';
+        day2Header.className = (hasPlayers && activeDay === 'day2') ? 'active-header' : '';
         day2Header.style.cursor = 'pointer';
     }
     if (day3Header) {
-        day3Header.className = activeDay === 'day3' ? 'active-header' : '';
+        day3Header.className = (hasPlayers && activeDay === 'day3') ? 'active-header' : '';
         day3Header.style.cursor = 'pointer';
     }
 }
