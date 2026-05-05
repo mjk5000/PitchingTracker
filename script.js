@@ -509,33 +509,7 @@ function renderLittleLeagueTable() {
         <th></th>
         <th>Player</th>
         <th>Age</th>
-        <th>Day 1 Pitches</th>
-        <th>Day 2 Pitches</th>
-        <th>Day 3 Pitches</th>
-        <th>Next Available</th>
-    `;
-    
-    // Show/hide the Remove Player button
-    const deleteBtn = document.getElementById('deleteBtn');
-    if (playerOrder.length === 0) {
-        deleteBtn.style.display = 'none';
-    } else {
-        deleteBtn.style.display = '';
-    }
-    
-    if (playerOrder.length === 0) {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td colspan="7" style="text-align: center; padding: 2rem; color: #666;">
-                No players added yet. Click "Add Player" to get started.
-            </td>
-        `;
-        tbody.appendChild(row);
-        return;
-    }
-    
-    playerOrder.forEach((player, index) => {
-        const agPitched</th>
+        <th>Day Pitched</th>
         <th>Pitches</th>
         <th>Next Available</th>
     `;
@@ -599,7 +573,33 @@ function renderLittleLeagueTable() {
                 <div class="innings-counter">
                     <button class="counter-btn counter-btn-up" onclick="updateLLPitchCount('${player}', 1)" ${pitches >= rules.max ? 'disabled' : ''}>▲</button>
                     <span class="innings-value">${pitches}</span>
-                    <button class="counter-btn counter-btn-down" onclick="updateLLPitchCount('${player}', -1)" ${p
+                    <button class="counter-btn counter-btn-down" onclick="updateLLPitchCount('${player}', -1)" ${pitches <= 0 ? 'disabled' : ''}>▼</button>
+                </div>
+            </td>
+            <td style="text-align: center; font-weight: bold;">${nextAvailable}</td>
+        `;
+        
+        row.setAttribute('data-player', player);
+        row.setAttribute('data-index', index);
+        row.setAttribute('draggable', 'false');
+        
+        const dragHandle = row.querySelector('.drag-handle');
+        
+        // Add long-press support to player name for editing
+        const playerNameSpan = row.querySelector('.player-name');
+        let longPressTimer = null;
+        
+        playerNameSpan.addEventListener('touchstart', (e) => {
+            longPressTimer = setTimeout(() => {
+                editPlayerName(player);
+            }, 500);
+        }, { passive: true });
+        
+        playerNameSpan.addEventListener('touchend', () => {
+            if (longPressTimer) {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            }
         }, { passive: true });
         
         playerNameSpan.addEventListener('touchmove', () => {
