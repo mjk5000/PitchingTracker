@@ -536,16 +536,17 @@ function calculateNextAvailable(player) {
     const age = playerAges[player] || 12;
     const pitches = llPitchData[player]?.pitches || 0;
     
-    // Show dash if no day selected or no pitches
-    if (!dayOfWeek || pitches === 0) return '-';
+    // Show dash if no day selected
+    if (!dayOfWeek) return '-';
     
-    const restDays = getRestDaysRequired(pitches, age);
-    // Show dash if no rest required (1-20 pitches)
-    if (restDays === 0) return '-';
+    // Show dash if no pitches thrown yet
+    if (pitches === 0) return '-';
     
     const dayIndex = DAYS_OF_WEEK.indexOf(dayOfWeek);
     if (dayIndex === -1) return '-';
     
+    const restDays = getRestDaysRequired(pitches, age);
+    // Calculate next available day: current day + rest days + 1
     const nextDayIndex = (dayIndex + restDays + 1) % 7;
     return DAYS_OF_WEEK[nextDayIndex];
 }
