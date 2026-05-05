@@ -422,11 +422,7 @@ function getRestDaysRequired(pitches, age) {
     return 0;
 }
 
-// Get next available day to pitch
-function getNextAvailableDay(player, currentDay) {
-    const age = playerAges[player] || 12;
-    const data = llPitchData[player];
-   Days of the week
+// Days of the week
 const DAYS_OF_WEEK = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 // Calculate next available day based on last pitch
@@ -1117,7 +1113,11 @@ function submitAddPlayer() {
     if (!trimmedName) {
         alert('Player name cannot be empty');
         return;
-    } dayOfWeek: '', pitches: 0, date: '' return;
+    }
+    
+    if (players.includes(trimmedName)) {
+        alert('Player already exists');
+        return;
     }
     
     players.push(trimmedName);
@@ -1528,14 +1528,18 @@ function renderRules() {
     
     if (useLittleLeague) {
         // Little League rules
-        if (rulesTitle) { dayOfWeek: '', pitches: 0, date: ''esList.innerHTML = `
+        if (rulesTitle) {
+            rulesTitle.textContent = 'Quick Reference Rules (Little League)';
+        }
+        
+        if (rulesList) {
+            rulesList.innerHTML = `
                 <li><strong>Ages 7-8:</strong> 50 pitches max per day</li>
                 <li><strong>Ages 9-10:</strong> 75 pitches max per day</li>
                 <li><strong>Ages 11-12:</strong> 85 pitches max per day</li>
                 <li><strong>Ages 13-16:</strong> 95 pitches max per day</li>
                 <li><strong>Rest (14U):</strong> 66+ = 4 days, 51-65 = 3 days, 36-50 = 2 days, 21-35 = 1 day, 1-20 = 0 days</li>
                 <li><strong>Rest (15-16):</strong> 76+ = 4 days, 61-75 = 3 days, 46-60 = 2 days, 31-45 = 1 day, 1-30 = 0 days</li>
-                <li><strong>Catcher Rule:</strong> Cannot catch after pitching 41+ pitches. Cannot pitch after catching 4+ innings same day.</li>
                 <li><strong>Full Rules:</strong> <a href="https://www.littleleague.org/playing-rules/pitch-count/" target="_blank" style="color: #0066cc;">Little League Pitch Count</a></li>
             `;
         }
@@ -1630,4 +1634,5 @@ function loadSharedData() {
         alert('Error loading shared data. Loading your saved data instead.');
         loadData();
     }
+}
 }
