@@ -749,6 +749,24 @@ function renderLittleLeagueTable() {
             }
         }, { passive: true });
         
+        // Only enable dragging if not in delete mode
+        if (!deleteMode) {
+            dragHandle.setAttribute('draggable', 'true');
+            dragHandle.addEventListener('dragstart', handleDragStart);
+            row.addEventListener('dragover', handleDragOver);
+            row.addEventListener('drop', handleDrop);
+            row.addEventListener('dragenter', handleDragEnter);
+            row.addEventListener('dragleave', handleDragLeave);
+            
+            // Add touch event listeners for mobile
+            dragHandle.addEventListener('touchstart', handleTouchStart, { passive: false });
+            row.addEventListener('touchmove', handleTouchMove, { passive: false });
+            row.addEventListener('touchend', handleTouchEnd, { passive: false });
+            row.addEventListener('touchcancel', handleTouchEnd, { passive: false });
+        } else {
+            dragHandle.setAttribute('draggable', 'false');
+        }
+        
         tbody.appendChild(row);
     });
 }
@@ -987,6 +1005,13 @@ function handleDrop(e) {
         playerOrder.splice(draggedIndex, 1);
         playerOrder.splice(targetIndex, 0, draggedPlayer);
         
+        // Update the mode-specific array
+        if (useLittleLeague) {
+            llPlayerOrder = [...playerOrder];
+        } else {
+            usssaPlayerOrder = [...playerOrder];
+        }
+        
         saveData();
         renderTable();
     }
@@ -1111,6 +1136,14 @@ function handleTouchEnd(e) {
         }
         
         playerOrder.splice(insertIndex, 0, draggedPlayer);
+        
+        // Update the mode-specific array
+        if (useLittleLeague) {
+            llPlayerOrder = [...playerOrder];
+        } else {
+            usssaPlayerOrder = [...playerOrder];
+        }
+        
         saveData();
     }
     
