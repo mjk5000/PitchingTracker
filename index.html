@@ -10,7 +10,7 @@
     <meta name="apple-mobile-web-app-title" content="Pitching Tracker">
     <meta name="mobile-web-app-capable" content="yes">
     <title>USSSA Pitching Tracker</title>
-    <link rel="stylesheet" href="styles.css?v=1.9.6">
+    <link rel="stylesheet" href="styles.css?v=1.9.7">
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/svg+xml" href="icon.svg">
     <link rel="apple-touch-icon" href="icon.svg">
@@ -85,7 +85,7 @@
         </div>
         
         <div class="version">
-            v1.9.6
+            v1.9.7
         </div>
     </div>
 
@@ -126,7 +126,7 @@
         </div>
     </div>
 
-    <script src="script.js?v=1.9.6"></script>
+    <script src="script.js?v=1.9.7"></script>
     <script>
         // Register service worker for PWA functionality and auto-updates
         if ('serviceWorker' in navigator) {
@@ -152,20 +152,30 @@
                     });
                     const data = await response.json();
                     const remoteVersion = data.version;
-                    const currentVersion = '1.9.6';
+                    const currentVersion = '1.9.7';
                     console.log('Current:', currentVersion, 'Remote:', remoteVersion);
                     if (remoteVersion !== currentVersion) {
-                        console.log('Version mismatch, forcing reload');
+                        console.log('Version mismatch, forcing update');
                         if (showMessage) {
                             alert(`Updating to version ${remoteVersion}...`);
                         }
+                        
+                        // Unregister ALL service workers
+                        const registrations = await navigator.serviceWorker.getRegistrations();
+                        for (let registration of registrations) {
+                            await registration.unregister();
+                        }
+                        
                         // Clear ALL caches
                         if ('caches' in window) {
                             const cacheNames = await caches.keys();
                             await Promise.all(cacheNames.map(name => caches.delete(name)));
                         }
-                        // Force hard reload
-                        window.location.href = window.location.href.split('?')[0] + '?t=' + timestamp;
+                        
+                        // Force hard reload after a brief delay
+                        setTimeout(() => {
+                            window.location.href = window.location.href.split('?')[0] + '?t=' + timestamp;
+                        }, 100);
                     } else if (showMessage) {
                         alert('You are running the latest version!');
                     }
@@ -190,7 +200,7 @@
                 }, 100);
                 
                 // Register service worker
-                navigator.serviceWorker.register('./sw.js?v=1.9.6')
+                navigator.serviceWorker.register('./sw.js?v=1.9.7')
                     .then(registration => {
                         console.log('ServiceWorker registered:', registration);
                         
