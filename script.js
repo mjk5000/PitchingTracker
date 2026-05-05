@@ -577,6 +577,68 @@ function decrementLLPitches(player) {
     }
 }
 
+// Fast increment pitch count by 10 for LL mode (press and hold)
+function fastIncrementLLPitches(player) {
+    if (!llPitchData[player]) {
+        llPitchData[player] = { pitches: 0 };
+    }
+    
+    const age = playerAges[player] || 12;
+    const rules = getLLRules(age);
+    const currentPitches = llPitchData[player].pitches || 0;
+    
+    if (currentPitches < rules.max) {
+        llPitchData[player].pitches = Math.min(currentPitches + 10, rules.max);
+        saveData();
+        renderTable();
+    }
+}
+
+// Fast decrement pitch count by 10 for LL mode (press and hold)
+function fastDecrementLLPitches(player) {
+    if (!llPitchData[player]) return;
+    
+    const currentPitches = llPitchData[player].pitches || 0;
+    if (currentPitches > 0) {
+        llPitchData[player].pitches = Math.max(currentPitches - 10, 0);
+        saveData();
+        renderTable();
+    }
+}
+
+// Press and hold handler for pitch buttons
+let pitchHoldInterval = null;
+let pitchHoldTimeout = null;
+
+function startPitchHold(player, isIncrement) {
+    // Clear any existing intervals
+    if (pitchHoldInterval) clearInterval(pitchHoldInterval);
+    if (pitchHoldTimeout) clearTimeout(pitchHoldTimeout);
+    
+    // Start the hold after 500ms
+    pitchHoldTimeout = setTimeout(() => {
+        // Repeat every 200ms while holding
+        pitchHoldInterval = setInterval(() => {
+            if (isIncrement) {
+                fastIncrementLLPitches(player);
+            } else {
+                fastDecrementLLPitches(player);
+            }
+        }, 200);
+    }, 500);
+}
+
+function stopPitchHold() {
+    if (pitchHoldInterval) {
+        clearInterval(pitchHoldInterval);
+        pitchHoldInterval = null;
+    }
+    if (pitchHoldTimeout) {
+        clearTimeout(pitchHoldTimeout);
+        pitchHoldTimeout = null;
+    }
+}
+
 // No need for column header updates in simplified LL mode
 
 // Update column headers to show which is active (for Little League mode)
@@ -717,9 +779,25 @@ function renderLittleLeagueTable() {
             pitchesCell = `
                 <td class="active-day" onclick="setActiveLLColumn('pitches')" style="cursor: pointer;">
                     <div class="innings-counter">
-                        <button class="counter-btn counter-btn-up" onclick="event.stopPropagation(); incrementLLPitches('${player}')" ${pitches >= rules.max ? 'disabled' : ''}>▲</button>
+                        <button class="counter-btn counter-btn-up" 
+                            onclick="event.stopPropagation(); incrementLLPitches('${player}')" 
+                            onmousedown="event.stopPropagation(); startPitchHold('${player}', true)" 
+                            onmouseup="event.stopPropagation(); stopPitchHold()" 
+                            onmouseleave="stopPitchHold()"
+                            ontouchstart="event.stopPropagation(); startPitchHold('${player}', true)" 
+                            ontouchend="event.stopPropagation(); stopPitchHold()" 
+                            ontouchcancel="stopPitchHold()"
+                            ${pitches >= rules.max ? 'disabled' : ''}>▲</button>
                         <span class="innings-value">${pitches}</span>
-                        <button class="counter-btn counter-btn-down" onclick="event.stopPropagation(); decrementLLPitches('${player}')" ${pitches <= 0 ? 'disabled' : ''}>▼</button>
+                        <button class="counter-btn counter-btn-down" 
+                            onclick="event.stopPropagation(); decrementLLPitches('${player}')" 
+                            onmousedown="event.stopPropagation(); startPitchHold('${player}', false)" 
+                            onmouseup="event.stopPropagation(); stopPitchHold()" 
+                            onmouseleave="stopPitchHold()"
+                            ontouchstart="event.stopPropagation(); startPitchHold('${player}', false)" 
+                            ontouchend="event.stopPropagation(); stopPitchHold()" 
+                            ontouchcancel="stopPitchHold()"
+                            ${pitches <= 0 ? 'disabled' : ''}>▼</button>
                     </div>
                 </td>`;
         }
