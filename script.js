@@ -31,14 +31,22 @@ function fractionToDecimal(str) {
     }
     return total;
 }
-// Player list (dynamic)
+// Player lists - separate for each mode
+let usssaPlayers = [];
+let usssaPlayerOrder = [];
+let llPlayers = [];
+let llPlayerOrder = [];
+
+// Current mode player list references
 let players = [];
 let playerOrder = [];
+
 let deleteMode = false;
 let use13URules = false;
 let useThreeDayColumn = false;
 let useLittleLeague = false; // Little League mode flag
-let activeDay = 'day1'; // Track which day column is currently active
+let activeDay = 'day1'; // Track which day column is currently active (USSSA)
+let activeLLColumn = 'pitches'; // Track which column is active in Little League mode
 
 // Tournament Rules Constants
 const RULES_7U_12U = {
@@ -91,13 +99,39 @@ let llDayOfWeek = {}; // Store day of week for each player
 
 // Load saved data from localStorage
 function loadData() {
-    // Load players first
-    const savedPlayers = localStorage.getItem('players');
-    if (savedPlayers) {
-        players = JSON.parse(savedPlayers);
+    // Load USSSA players
+    const savedUSSSAPlayers = localStorage.getItem('usssaPlayers');
+    if (savedUSSSAPlayers) {
+        usssaPlayers = JSON.parse(savedUSSSAPlayers);
     } else {
-        // Default players if none saved
-        players = [];
+        // Check for legacy 'players' data and migrate it to USSSA
+        const savedPlayers = localStorage.getItem('players');
+        if (savedPlayers) {
+            usssaPlayers = JSON.parse(savedPlayers);
+        } else {
+            usssaPlayers = [];
+        }
+    }
+    
+    // Load Little League players
+    const savedLLPlayers = localStorage.getItem('llPlayers');
+    if (savedLLPlayers) {
+        llPlayers = JSON.parse(savedLLPlayers);
+    } else {
+        llPlayers = [];
+    }
+    
+    // Load Little League mode setting first
+    const savedLLMode = localStorage.getItem('useLittleLeague');
+    if (savedLLMode !== null) {
+        useLittleLeague = JSON.parse(savedLLMode);
+    }
+    
+    // Set current mode references
+    if (useLittleLeague) {
+        players = llPlayers;
+    } else {
+        players = usssaPlayers;
     }
     
     const saved = localStorage.getItem('pitchingData');
@@ -123,20 +157,49 @@ function loadData() {
         });
     }
     
-    // Load player order
-    const savedOrder = localStorage.getItem('playerOrder');
-    if (savedOrder) {
-        playerOrder = JSON.parse(savedOrder);
+    // Load USSSA player order
+    const savedUSSSAOrder = localStorage.getItem('usssaPlayerOrder');
+    if (savedUSSSAOrder) {
+        usssaPlayerOrder = JSON.parse(savedUSSSAOrder);
         // Ensure all players are in the order array
-        players.forEach(player => {
-            if (!playerOrder.includes(player)) {
-                playerOrder.push(player);
+        usssaPlayers.forEach(player => {
+            if (!usssaPlayerOrder.includes(player)) {
+                usssaPlayerOrder.push(player);
             }
         });
         // Remove any players from order that no longer exist
-        playerOrder = playerOrder.filter(player => players.includes(player));
+        usssaPlayerOrder = usssaPlayerOrder.filter(player => usssaPlayers.includes(player));
     } else {
-        playerOrder = [...players];
+        // Check for legacy 'playerOrder' and migrate
+        const savedOrder = localStorage.getItem('playerOrder');
+        if (savedOrder) {
+            usssaPlayerOrder = JSON.parse(savedOrder);
+        } else {
+            usssaPlayerOrder = [...usssaPlayers];
+        }
+    }
+    
+    // Load Little League player order
+    const savedLLOrder = localStorage.getItem('llPlayerOrder');
+    if (savedLLOrder) {
+        llPlayerOrder = JSON.parse(savedLLOrder);
+        // Ensure all players are in the order array
+        llPlayers.forEach(player => {
+            if (!llPlayerOrder.includes(player)) {
+                llPlayerOrder.push(player);
+            }
+        });
+        // Remove any players from order that no longer exist
+        llPlayerOrder = llPlayerOrder.filter(player => llPlayers.includes(player));
+    } else {
+        llPlayerOrder = [...llPlayers];
+    }
+    
+    // Set current mode references
+    if (useLittleLeague) {
+        playerOrder = llPlayerOrder;
+    } else {
+        playerOrder = usssaPlayerOrder;
     }
     
     // Load 13U rules setting
@@ -158,10 +221,10 @@ function loadData() {
         activeDay = savedActiveDay;
     }
     
-    // Load Little League mode setting
-    const savedLLMode = localStorage.getItem('useLittleLeague');
-    if (savedLLMode !== null) {
-        useLittleLeague = JSON.parse(savedLLMode);
+    // Load active LL column setting
+    const savedActiveLLColumn = localStorage.getItem('activeLLColumn');
+    if (savedActiveLLColumn !== null) {
+        activeLLColumn = savedActiveLLColumn;
     }
     
     // Load Little League data
@@ -173,31 +236,29 @@ function loadData() {
     const savedLLData = localStorage.getItem('llPitchData');
     if (savedLLData) {
         llPitchData = JSON.parse(savedLLData);
-    } else {
-        // Initialize LL data for all players
-        players.forEach(player => {
-            if (!llPitchData[player]) {
-                llPitchData[player] = {
-                    day1: { pitches: 0, caughtAfter: false },
-                    day2: { pitches: 0, caughtAfter: false },
-                    day3: { pitches: 0, caughtAfter: false }
-                };
-            }
-        });
+    }
+    
+    const savedLLDayOfWeek = localStorage.getItem('llDayOfWeek');
+    if (savedLLDayOfWeek) {
+        llDayOfWeek = JSON.parse(savedLLDayOfWeek);
     }
 }
 
 // Save data to localStorage
 function saveData() {
-    localStorage.setItem('players', JSON.stringify(players));
+    localStorage.setItem('usssaPlayers', JSON.stringify(usssaPlayers));
+    localStorage.setItem('usssaPlayerOrder', JSON.stringify(usssaPlayerOrder));
+    localStorage.setItem('llPlayers', JSON.stringify(llPlayers));
+    localStorage.setItem('llPlayerOrder', JSON.stringify(llPlayerOrder));
     localStorage.setItem('pitchingData', JSON.stringify(pitchingData));
-    localStorage.setItem('playerOrder', JSON.stringify(playerOrder));
     localStorage.setItem('use13URules', JSON.stringify(use13URules));
     localStorage.setItem('useThreeDayColumn', JSON.stringify(useThreeDayColumn));
     localStorage.setItem('activeDay', activeDay);
+    localStorage.setItem('activeLLColumn', activeLLColumn);
     localStorage.setItem('useLittleLeague', JSON.stringify(useLittleLeague));
     localStorage.setItem('playerAges', JSON.stringify(playerAges));
     localStorage.setItem('llPitchData', JSON.stringify(llPitchData));
+    localStorage.setItem('llDayOfWeek', JSON.stringify(llDayOfWeek));
     localStorage.setItem('llDayOfWeek', JSON.stringify(llDayOfWeek));
 }
 
@@ -511,6 +572,26 @@ function decrementLLPitches(player) {
 
 // No need for column header updates in simplified LL mode
 
+// Update column headers to show which is active (for Little League mode)
+function updateLLColumnHeaders() {
+    const ageHeader = document.querySelector('th:nth-child(3)');
+    const dayOfWeekHeader = document.querySelector('th:nth-child(4)');
+    const pitchesHeader = document.querySelector('th:nth-child(5)');
+    
+    if (ageHeader) {
+        ageHeader.className = activeLLColumn === 'age' ? 'active-header' : '';
+        ageHeader.style.cursor = 'pointer';
+    }
+    if (dayOfWeekHeader) {
+        dayOfWeekHeader.className = activeLLColumn === 'dayOfWeek' ? 'active-header' : '';
+        dayOfWeekHeader.style.cursor = 'pointer';
+    }
+    if (pitchesHeader) {
+        pitchesHeader.className = activeLLColumn === 'pitches' ? 'active-header' : '';
+        pitchesHeader.style.cursor = 'pointer';
+    }
+}
+
 // Update column headers to show which is active (for USSSA mode)
 function updateColumnHeaders() {
     const day1Header = document.querySelector('th:nth-child(3)');
@@ -542,11 +623,14 @@ function renderLittleLeagueTable() {
     thead.innerHTML = `
         <th></th>
         <th>Player</th>
-        <th>Age</th>
-        <th>Day of Week</th>
-        <th>Pitches</th>
+        <th onclick="setActiveLLColumn('age')" style="cursor: pointer;">Age</th>
+        <th onclick="setActiveLLColumn('dayOfWeek')" style="cursor: pointer;">Day of Week</th>
+        <th onclick="setActiveLLColumn('pitches')" style="cursor: pointer;">Pitches</th>
         <th>Next Available</th>
     `;
+    
+    // Update column headers to show which is active
+    updateLLColumnHeaders();
     
     // Show/hide the Remove Player button
     const deleteBtn = document.getElementById('deleteBtn');
@@ -576,6 +660,44 @@ function renderLittleLeagueTable() {
         
         const rules = getLLRules(age);
         
+        // Build cells - only show arrows for active column
+        let ageCell, dayOfWeekCell, pitchesCell;
+        
+        if (activeLLColumn === 'age') {
+            ageCell = `
+                <td class="active-day" onclick="setActiveLLColumn('age')" style="cursor: pointer;">
+                    <div class="innings-counter">
+                        <button class="counter-btn counter-btn-up" onclick="event.stopPropagation(); changePlayerAge('${player}', 1)" ${age >= 16 ? 'disabled' : ''}>▲</button>
+                        <span class="innings-value">${age}</span>
+                        <button class="counter-btn counter-btn-down" onclick="event.stopPropagation(); changePlayerAge('${player}', -1)" ${age <= 7 ? 'disabled' : ''}>▼</button>
+                    </div>
+                </td>`;
+            dayOfWeekCell = `<td onclick="setActiveLLColumn('dayOfWeek')" style="cursor: pointer;"><span class="innings-value">${dayOfWeek || '--'}</span></td>`;
+            pitchesCell = `<td onclick="setActiveLLColumn('pitches')" style="cursor: pointer;"><span class="innings-value">${pitches}</span></td>`;
+        } else if (activeLLColumn === 'dayOfWeek') {
+            ageCell = `<td onclick="setActiveLLColumn('age')" style="cursor: pointer;"><span class="innings-value">${age}</span></td>`;
+            dayOfWeekCell = `
+                <td class="active-day" onclick="setActiveLLColumn('dayOfWeek')" style="cursor: pointer;">
+                    <div class="innings-counter">
+                        <button class="counter-btn counter-btn-up" onclick="event.stopPropagation(); changeLLDayOfWeek('${player}', 1)">▲</button>
+                        <span class="innings-value">${dayOfWeek || '--'}</span>
+                        <button class="counter-btn counter-btn-down" onclick="event.stopPropagation(); changeLLDayOfWeek('${player}', -1)">▼</button>
+                    </div>
+                </td>`;
+            pitchesCell = `<td onclick="setActiveLLColumn('pitches')" style="cursor: pointer;"><span class="innings-value">${pitches}</span></td>`;
+        } else { // pitches
+            ageCell = `<td onclick="setActiveLLColumn('age')" style="cursor: pointer;"><span class="innings-value">${age}</span></td>`;
+            dayOfWeekCell = `<td onclick="setActiveLLColumn('dayOfWeek')" style="cursor: pointer;"><span class="innings-value">${dayOfWeek || '--'}</span></td>`;
+            pitchesCell = `
+                <td class="active-day" onclick="setActiveLLColumn('pitches')" style="cursor: pointer;">
+                    <div class="innings-counter">
+                        <button class="counter-btn counter-btn-up" onclick="event.stopPropagation(); incrementLLPitches('${player}')" ${pitches >= rules.max ? 'disabled' : ''}>▲</button>
+                        <span class="innings-value">${pitches}</span>
+                        <button class="counter-btn counter-btn-down" onclick="event.stopPropagation(); decrementLLPitches('${player}')" ${pitches <= 0 ? 'disabled' : ''}>▼</button>
+                    </div>
+                </td>`;
+        }
+        
         const row = document.createElement('tr');
         row.innerHTML = `
             <td class="drag-handle ${deleteMode ? 'delete-mode' : ''}" ${deleteMode ? `onclick="removePlayer('${player}')"` : ''}>${deleteMode ? '✕' : '☰'}</td>
@@ -584,27 +706,9 @@ function renderLittleLeagueTable() {
                     <span class="player-name" ondblclick="editPlayerName('${player}')">${player}</span>
                 </div>
             </td>
-            <td>
-                <div class="innings-counter">
-                    <button class="counter-btn counter-btn-up" onclick="changePlayerAge('${player}', 1)" ${age >= 16 ? 'disabled' : ''}>▲</button>
-                    <span class="innings-value">${age}</span>
-                    <button class="counter-btn counter-btn-down" onclick="changePlayerAge('${player}', -1)" ${age <= 7 ? 'disabled' : ''}>▼</button>
-                </div>
-            </td>
-            <td>
-                <div class="innings-counter">
-                    <button class="counter-btn counter-btn-up" onclick="changeLLDayOfWeek('${player}', 1)">▲</button>
-                    <span class="innings-value">${dayOfWeek || '--'}</span>
-                    <button class="counter-btn counter-btn-down" onclick="changeLLDayOfWeek('${player}', -1)">▼</button>
-                </div>
-            </td>
-            <td>
-                <div class="innings-counter">
-                    <button class="counter-btn counter-btn-up" onclick="incrementLLPitches('${player}')" ${pitches >= rules.max ? 'disabled' : ''}>▲</button>
-                    <span class="innings-value">${pitches}</span>
-                    <button class="counter-btn counter-btn-down" onclick="decrementLLPitches('${player}')" ${pitches <= 0 ? 'disabled' : ''}>▼</button>
-                </div>
-            </td>
+            ${ageCell}
+            ${dayOfWeekCell}
+            ${pitchesCell}
             <td style="text-align: center; font-weight: bold;">${nextAvailable}</td>
         `;
         
@@ -1044,16 +1148,31 @@ function removePlayer(playerName) {
         return;
     }
     
-    // Remove from players array
-    const index = players.indexOf(playerName);
-    if (index > -1) {
-        players.splice(index, 1);
-    }
-    
-    // Remove from playerOrder
-    const orderIndex = playerOrder.indexOf(playerName);
-    if (orderIndex > -1) {
-        playerOrder.splice(orderIndex, 1);
+    // Remove from current mode's player list
+    if (useLittleLeague) {
+        const index = llPlayers.indexOf(playerName);
+        if (index > -1) {
+            llPlayers.splice(index, 1);
+        }
+        const orderIndex = llPlayerOrder.indexOf(playerName);
+        if (orderIndex > -1) {
+            llPlayerOrder.splice(orderIndex, 1);
+        }
+        // Update references
+        players = llPlayers;
+        playerOrder = llPlayerOrder;
+    } else {
+        const index = usssaPlayers.indexOf(playerName);
+        if (index > -1) {
+            usssaPlayers.splice(index, 1);
+        }
+        const orderIndex = usssaPlayerOrder.indexOf(playerName);
+        if (orderIndex > -1) {
+            usssaPlayerOrder.splice(orderIndex, 1);
+        }
+        // Update references
+        players = usssaPlayers;
+        playerOrder = usssaPlayerOrder;
     }
     
     // Remove from pitchingData
@@ -1082,7 +1201,7 @@ function addPlayer() {
             return;
         }
         
-        if (players.includes(trimmedName)) {
+        if (llPlayers.includes(trimmedName)) {
             alert('Player already exists');
             return;
         }
@@ -1096,14 +1215,12 @@ function addPlayer() {
             return;
         }
         
-        players.push(trimmedName);
-        playerOrder.push(trimmedName);
+        llPlayers.push(trimmedName);
+        llPlayerOrder.push(trimmedName);
+        players = llPlayers;
+        playerOrder = llPlayerOrder;
         playerAges[trimmedName] = ageNum;
-        llPitchData[trimmedName] = {
-            day1: { pitches: 0, caughtAfter: false },
-            day2: { pitches: 0, caughtAfter: false },
-            day3: { pitches: 0, caughtAfter: false }
-        };
+        llPitchData[trimmedName] = { pitches: 0 };
         
         saveData();
         renderTable();
@@ -1153,8 +1270,10 @@ function submitAddPlayer() {
         return;
     }
     
-    players.push(trimmedName);
-    playerOrder.push(trimmedName);
+    usssaPlayers.push(trimmedName);
+    usssaPlayerOrder.push(trimmedName);
+    players = usssaPlayers;
+    playerOrder = usssaPlayerOrder;
     pitchingData[trimmedName] = { day1: 0, day2: 0, day3: 0 };
     
     saveData();
@@ -1520,6 +1639,15 @@ function toggleLeagueMode() {
     // Determine which mode is selected
     useLittleLeague = llRadio.checked;
     
+    // Switch player lists based on mode
+    if (useLittleLeague) {
+        players = llPlayers;
+        playerOrder = llPlayerOrder;
+    } else {
+        players = usssaPlayers;
+        playerOrder = usssaPlayerOrder;
+    }
+    
     // Update app title and header
     const title = document.getElementById('app-title');
     const header = document.getElementById('app-header');
@@ -1529,20 +1657,6 @@ function toggleLeagueMode() {
         if (title) title.textContent = 'Little League Pitching Tracker';
         if (header) header.textContent = 'Little League Pitching Tracker';
         if (usssaSettings) usssaSettings.style.display = 'none';
-        
-        // Initialize LL data for existing players if needed
-        players.forEach(player => {
-            if (!playerAges[player]) {
-                playerAges[player] = 12; // Default age
-            }
-            if (!llPitchData[player]) {
-                llPitchData[player] = {
-                    day1: { pitches: 0 },
-                    day2: { pitches: 0 },
-                    day3: { pitches: 0 }
-                };
-            }
-        });
     } else {
         if (title) title.textContent = 'USSSA Pitching Tracker';
         if (header) header.textContent = 'USSSA Pitching Tracker';
