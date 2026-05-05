@@ -16,6 +16,8 @@ body {
     line-height: 1.4;
     color: #333;
     background: linear-gradient(135deg, #003366 0%, #0066cc 100%);
+    /* 110vh/110dvh overfills viewport to eliminate iOS PWA white space on initial load */
+    /* This compensates for iOS viewport calculation issues in fullscreen PWA mode */
     min-height: 110vh;
     min-height: 110dvh;
     padding: 10px;
