@@ -205,7 +205,7 @@ header h1 {
 /* Table Container */
 .table-container {
     overflow-x: auto;
-    margin-bottom: 1rem;
+    margin-bottom: 2rem;
     -webkit-overflow-scrolling: touch;
 }
 
