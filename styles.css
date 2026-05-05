@@ -247,13 +247,12 @@ thead th:nth-child(2) {
 thead th:nth-child(3),
 thead th:nth-child(4),
 thead th:nth-child(5) {
-    width: 70px;
-    transition: width 0.2s ease;
+    width: 140px;
+    min-width: 140px;
 }
 
-/* Active column header gets more width */
+/* Active column header styling (no width change) */
 thead th.active-header {
-    width: 140px;
     background-color: #004d99;
     font-weight: 700;
     border-bottom: 3px solid #ffcc00;
@@ -262,8 +261,6 @@ thead th.active-header {
 /* Active day cell */
 td.active-day {
     background-color: #e6f2ff;
-    width: 140px;
-    min-width: 140px;
 }
 
 tbody tr {
@@ -317,9 +314,8 @@ tbody td:nth-child(2) {
 tbody td:nth-child(3),
 tbody td:nth-child(4),
 tbody td:nth-child(5) {
-    width: 70px;
-    min-width: 70px;
-    transition: width 0.2s ease;
+    width: 140px;
+    min-width: 140px;
 }
 
 .player-name-cell {

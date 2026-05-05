@@ -67,6 +67,8 @@ const LL_RULES = {
     AGE_15_16: { max: 95, rest: [[76, 4], [61, 3], [46, 2], [31, 1], [1, 0]] }
 };
 
+const DAYS_OF_WEEK = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
 // Little League Catcher Rules
 function canCatchAfterPitching(pitches) {
     if (pitches >= 41) return false; // Cannot catch after 41+ pitches
@@ -83,8 +85,8 @@ let pitchingData = {};
 
 // Little League specific data structures
 let playerAges = {}; // Store player ages for LL mode
-let llPitchData = {}; // Store pitch counts per day for LL mode
-// Structure: { playerName: { day1: { pitches: 0, caughtAfter: false }, day2: {...}, day3: {...} } }
+let llPitchData = {}; // Store pitch counts per week for LL mode
+// Structure: { playerName: { dayOfWeek: 'Mon', pitches: 0 } }
 
 // Load saved data from localStorage
 function loadData() {
@@ -427,83 +429,53 @@ function getRestDaysRequired(pitches, age) {
     return 0;
 }
 
-// Get next available day to pitch
-function getNextAvailableDay(player, currentDay) {
-    const age = playerAges[player] || 12;
-    const data = llPitchData[player];
+// Calculate next available day to pitch based on day of week and rest days
+function calculateNextAvailable(dayOfWeek, pitches, age) {
+    if (!dayOfWeek || pitches === 0) return 'Available';
     
-    if (!data) return currentDay;
+    const restDays = getRestDaysRequired(pitches, age);
+    if (restDays === 0) return 'Available';
     
-    // Get the pitch count from the most recent day
-    let lastPitchDay = null;
-    let lastPitches = 0;
+    const dayIndex = DAYS_OF_WEEK.indexOf(dayOfWeek);
+    if (dayIndex === -1) return 'Available';
     
-    if (currentDay === 'day2') {
-        lastPitchDay = 'day1';
-        lastPitches = data.day1?.pitches || 0;
-    } else if (currentDay === 'day3') {
-        // Check day2 first, if none then day1
-        if ((data.day2?.pitches || 0) > 0) {
-            lastPitchDay = 'day2';
-            lastPitches = data.day2.pitches;
-        } else if ((data.day1?.pitches || 0) > 0) {
-            lastPitchDay = 'day1';
-            lastPitches = data.day1.pitches;
-        }
-    }
-    
-    if (lastPitches === 0) return currentDay; // No rest needed
-    
-    const restDays = getRestDaysRequired(lastPitches, age);
-    
-    if (restDays === 0) return currentDay;
-    if (restDays === 1 && currentDay === 'day2') return 'day3';
-    if (restDays === 1 && currentDay === 'day3') return currentDay;
-    if (restDays >= 2 && currentDay === 'day2') return 'day3+';
-    if (restDays >= 2 && currentDay === 'day3') return 'day3+';
-    if (restDays >= 3) return 'day3+';
-    
-    return currentDay;
+    const nextDayIndex = (dayIndex + restDays + 1) % 7;
+    return DAYS_OF_WEEK[nextDayIndex];
 }
 
-// Increment pitch count for LL mode
-function incrementLLPitches(player, day) {
+// Change player age
+function changePlayerAge(player, direction) {
+    if (!playerAges[player]) playerAges[player] = 12;
+    playerAges[player] += direction;
+    if (playerAges[player] < 7) playerAges[player] = 7;
+    if (playerAges[player] > 16) playerAges[player] = 16;
+    saveData();
+    renderTable();
+}
+
+// Update pitch count
+function updateLLPitchCount(player, change) {
     if (!llPitchData[player]) {
-        llPitchData[player] = {
-            day1: { pitches: 0, caughtAfter: false },
-            day2: { pitches: 0, caughtAfter: false },
-            day3: { pitches: 0, caughtAfter: false }
-        };
+        llPitchData[player] = { dayOfWeek: '', pitches: 0 };
     }
     
+    llPitchData[player].pitches = Math.max(0, (llPitchData[player].pitches || 0) + change);
     const age = playerAges[player] || 12;
     const rules = getLLRules(age);
-    const currentPitches = llPitchData[player][day].pitches || 0;
-    
-    if (currentPitches < rules.max) {
-        llPitchData[player][day].pitches = Math.min(currentPitches + 1, rules.max);
-        saveData();
-        renderTable();
+    if (llPitchData[player].pitches > rules.max) {
+        llPitchData[player].pitches = rules.max;
     }
+    
+    saveData();
+    renderTable();
 }
 
-// Decrement pitch count for LL mode
-function decrementLLPitches(player, day) {
-    if (!llPitchData[player]) return;
-    
-    const currentPitches = llPitchData[player][day].pitches || 0;
-    if (currentPitches > 0) {
-        llPitchData[player][day].pitches = currentPitches - 1;
-        saveData();
-        renderTable();
+// Set day of week for player
+function setLLDayOfWeek(player, day) {
+    if (!llPitchData[player]) {
+        llPitchData[player] = { dayOfWeek: '', pitches: 0 };
     }
-}
-
-// Toggle catcher status after pitching
-function toggleLLCatcher(player, day) {
-    if (!llPitchData[player]) return;
-    
-    llPitchData[player][day].caughtAfter = !llPitchData[player][day].caughtAfter;
+    llPitchData[player].dayOfWeek = day;
     saveData();
     renderTable();
 }
@@ -540,9 +512,8 @@ function renderLittleLeagueTable() {
         <th></th>
         <th>Player</th>
         <th>Age</th>
-        <th>Day 1 Pitches</th>
-        <th>Day 2 Pitches</th>
-        <th>Day 3 Pitches</th>
+        <th>Day Pitched</th>
+        <th>Pitches</th>
         <th>Next Available</th>
     `;
     
@@ -557,7 +528,7 @@ function renderLittleLeagueTable() {
     if (playerOrder.length === 0) {
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td colspan="7" style="text-align: center; padding: 2rem; color: #666;">
+            <td colspan="6" style="text-align: center; padding: 2rem; color: #666;">
                 No players added yet. Click "Add Player" to get started.
             </td>
         `;
@@ -567,36 +538,18 @@ function renderLittleLeagueTable() {
     
     playerOrder.forEach((player, index) => {
         const age = playerAges[player] || 12;
-        const data = llPitchData[player] || {
-            day1: { pitches: 0, caughtAfter: false },
-            day2: { pitches: 0, caughtAfter: false },
-            day3: { pitches: 0, caughtAfter: false }
-        };
+        const data = llPitchData[player] || { dayOfWeek: '', pitches: 0 };
         
-        const day1Pitches = data.day1?.pitches || 0;
-        const day2Pitches = data.day2?.pitches || 0;
-        const day3Pitches = data.day3?.pitches || 0;
+        const dayOfWeek = data.dayOfWeek || '';
+        const pitches = data.pitches || 0;
         
-        // Calculate next available day (simplified for display)
-        let nextAvailable = 'Available';
-        if (day1Pitches > 0) {
-            const restDays = getRestDaysRequired(day1Pitches, age);
-            if (restDays === 0) nextAvailable = 'Available';
-            else if (restDays === 1) nextAvailable = 'Day 3';
-            else nextAvailable = `${restDays+1} days`;
-        }
-        if (day2Pitches > 0) {
-            const restDays = getRestDaysRequired(day2Pitches, age);
-            if (restDays === 0) nextAvailable = 'Available';
-            else if (restDays === 1) nextAvailable = '2 days';
-            else nextAvailable = `${restDays+1} days`;
-        }
-        if (day3Pitches > 0) {
-            const restDays = getRestDaysRequired(day3Pitches, age);
-            nextAvailable = restDays === 0 ? 'Available' : `${restDays+1} days`;
-        }
-        
+        const nextAvailable = calculateNextAvailable(dayOfWeek, pitches, age);
         const rules = getLLRules(age);
+        
+        // Build day of week dropdown options
+        const dayOptions = DAYS_OF_WEEK.map(day => 
+            `<option value="${day}" ${dayOfWeek === day ? 'selected' : ''}>${day}</option>`
+        ).join('');
         
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -606,26 +559,24 @@ function renderLittleLeagueTable() {
                     <span class="player-name" ondblclick="editPlayerName('${player}')">${player}</span>
                 </div>
             </td>
-            <td style="text-align: center;">${age}</td>
             <td>
                 <div class="innings-counter">
-                    <button class="counter-btn counter-btn-up" onclick="incrementLLPitches('${player}', 'day1')" ${day1Pitches >= rules.max ? 'disabled' : ''}>▲</button>
-                    <span class="innings-value">${day1Pitches}</span>
-                    <button class="counter-btn counter-btn-down" onclick="decrementLLPitches('${player}', 'day1')" ${day1Pitches <= 0 ? 'disabled' : ''}>▼</button>
+                    <button class="counter-btn counter-btn-up" onclick="changePlayerAge('${player}', 1)" ${age >= 16 ? 'disabled' : ''}>▲</button>
+                    <span class="innings-value">${age}</span>
+                    <button class="counter-btn counter-btn-down" onclick="changePlayerAge('${player}', -1)" ${age <= 7 ? 'disabled' : ''}>▼</button>
                 </div>
+            </td>
+            <td style="text-align: center;">
+                <select onchange="setLLDayOfWeek('${player}', this.value)" style="padding: 0.3rem; font-size: 0.9rem; border: 1px solid #ccc; border-radius: 4px; background: white;">
+                    <option value="">--</option>
+                    ${dayOptions}
+                </select>
             </td>
             <td>
                 <div class="innings-counter">
-                    <button class="counter-btn counter-btn-up" onclick="incrementLLPitches('${player}', 'day2')" ${day2Pitches >= rules.max ? 'disabled' : ''}>▲</button>
-                    <span class="innings-value">${day2Pitches}</span>
-                    <button class="counter-btn counter-btn-down" onclick="decrementLLPitches('${player}', 'day2')" ${day2Pitches <= 0 ? 'disabled' : ''}>▼</button>
-                </div>
-            </td>
-            <td>
-                <div class="innings-counter">
-                    <button class="counter-btn counter-btn-up" onclick="incrementLLPitches('${player}', 'day3')" ${day3Pitches >= rules.max ? 'disabled' : ''}>▲</button>
-                    <span class="innings-value">${day3Pitches}</span>
-                    <button class="counter-btn counter-btn-down" onclick="decrementLLPitches('${player}', 'day3')" ${day3Pitches <= 0 ? 'disabled' : ''}>▼</button>
+                    <button class="counter-btn counter-btn-up" onclick="updateLLPitchCount('${player}', 1)" ${pitches >= rules.max ? 'disabled' : ''}>▲</button>
+                    <span class="innings-value">${pitches}</span>
+                    <button class="counter-btn counter-btn-down" onclick="updateLLPitchCount('${player}', -1)" ${pitches <= 0 ? 'disabled' : ''}>▼</button>
                 </div>
             </td>
             <td style="text-align: center; font-weight: bold;">${nextAvailable}</td>
@@ -1559,11 +1510,7 @@ function toggleLeagueMode() {
                 playerAges[player] = 12; // Default age
             }
             if (!llPitchData[player]) {
-                llPitchData[player] = {
-                    day1: { pitches: 0, caughtAfter: false },
-                    day2: { pitches: 0, caughtAfter: false },
-                    day3: { pitches: 0, caughtAfter: false }
-                };
+                llPitchData[player] = { dayOfWeek: '', pitches: 0 };
             }
         });
     } else {
