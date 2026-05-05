@@ -703,7 +703,7 @@ function renderLittleLeagueTable() {
     thead.innerHTML = `
         <th></th>
         <th>Player</th>
-        <th onclick="setActiveLLColumn('age')" style="cursor: pointer; width: 60px; min-width: 60px;">Age</th>
+        <th onclick="setActiveLLColumn('age')" style="cursor: pointer;">Age</th>
         <th onclick="setActiveLLColumn('dayOfWeek')" style="cursor: pointer;">Day</th>
         <th onclick="setActiveLLColumn('pitches')" style="cursor: pointer;">Pitches</th>
         <th>Next</th>
@@ -753,17 +753,17 @@ function renderLittleLeagueTable() {
         
         if (activeLLColumn === 'age') {
             ageCell = `
-                <td class="active-day" onclick="setActiveLLColumn('age')" style="cursor: pointer; width: 60px; min-width: 60px;">
-                    <div class="innings-counter" style="gap: 0.1rem;">
+                <td class="active-day" onclick="setActiveLLColumn('age')" style="cursor: pointer;">
+                    <div class="innings-counter">
                         <button class="counter-btn counter-btn-up" onclick="event.stopPropagation(); changePlayerAge('${player}', 1)" ${age >= 16 ? 'disabled' : ''}>▲</button>
-                        <span class="innings-value" style="width: 30px; min-width: 30px; max-width: 30px; font-size: 0.9rem;">${age}</span>
+                        <span class="innings-value">${age}</span>
                         <button class="counter-btn counter-btn-down" onclick="event.stopPropagation(); changePlayerAge('${player}', -1)" ${age <= 7 ? 'disabled' : ''}>▼</button>
                     </div>
                 </td>`;
             dayOfWeekCell = `<td onclick="setActiveLLColumn('dayOfWeek')" style="cursor: pointer;"><span class="innings-value">${dayOfWeek || '--'}</span></td>`;
             pitchesCell = `<td onclick="setActiveLLColumn('pitches')" style="cursor: pointer;"><span class="innings-value">${pitches}</span></td>`;
         } else if (activeLLColumn === 'dayOfWeek') {
-            ageCell = `<td onclick="setActiveLLColumn('age')" style="cursor: pointer; width: 60px; min-width: 60px;"><span class="innings-value" style="width: 30px; min-width: 30px; max-width: 30px; font-size: 0.9rem;">${age}</span></td>`;
+            ageCell = `<td onclick="setActiveLLColumn('age')" style="cursor: pointer;"><span class="innings-value">${age}</span></td>`;
             dayOfWeekCell = `
                 <td class="active-day" onclick="setActiveLLColumn('dayOfWeek')" style="cursor: pointer;">
                     <div class="innings-counter">
@@ -774,7 +774,7 @@ function renderLittleLeagueTable() {
                 </td>`;
             pitchesCell = `<td onclick="setActiveLLColumn('pitches')" style="cursor: pointer;"><span class="innings-value">${pitches}</span></td>`;
         } else { // pitches
-            ageCell = `<td onclick="setActiveLLColumn('age')" style="cursor: pointer; width: 60px; min-width: 60px;"><span class="innings-value" style="width: 30px; min-width: 30px; max-width: 30px; font-size: 0.9rem;">${age}</span></td>`;
+            ageCell = `<td onclick="setActiveLLColumn('age')" style="cursor: pointer;"><span class="innings-value">${age}</span></td>`;
             dayOfWeekCell = `<td onclick="setActiveLLColumn('dayOfWeek')" style="cursor: pointer;"><span class="innings-value">${dayOfWeek || '--'}</span></td>`;
             pitchesCell = `
                 <td class="active-day" onclick="setActiveLLColumn('pitches')" style="cursor: pointer;">
