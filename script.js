@@ -37,6 +37,7 @@ let playerOrder = [];
 let deleteMode = false;
 let use13URules = false;
 let useThreeDayColumn = false;
+let useLittleLeague = false; // Little League mode flag
 let activeDay = 'day1'; // Track which day column is currently active
 
 // Tournament Rules Constants
@@ -57,8 +58,33 @@ const RULES_13U = {
 // Current active rules
 let RULES = { ...RULES_7U_12U };
 
+// Little League Pitch Count Rules
+const LL_RULES = {
+    AGE_7_8: { max: 50, rest: [[66, 4], [51, 3], [36, 2], [21, 1], [1, 0]] },
+    AGE_9_10: { max: 75, rest: [[66, 4], [51, 3], [36, 2], [21, 1], [1, 0]] },
+    AGE_11_12: { max: 85, rest: [[66, 4], [51, 3], [36, 2], [21, 1], [1, 0]] },
+    AGE_13_14: { max: 95, rest: [[66, 4], [51, 3], [36, 2], [21, 1], [1, 0]] },
+    AGE_15_16: { max: 95, rest: [[76, 4], [61, 3], [46, 2], [31, 1], [1, 0]] }
+};
+
+// Little League Catcher Rules
+function canCatchAfterPitching(pitches) {
+    if (pitches >= 41) return false; // Cannot catch after 41+ pitches
+    return true;
+}
+
+function canPitchAfterCatching(caughtInnings) {
+    // If caught 4+ innings, cannot pitch in the same calendar day
+    return caughtInnings < 4;
+}
+
 // Initialize data storage
 let pitchingData = {};
+
+// Little League specific data structures
+let playerAges = {}; // Store player ages for LL mode
+let llPitchData = {}; // Store pitch counts per day for LL mode
+// Structure: { playerName: { day1: { pitches: 0, caughtAfter: false }, day2: {...}, day3: {...} } }
 
 // Load saved data from localStorage
 function loadData() {
@@ -128,6 +154,34 @@ function loadData() {
     if (savedActiveDay !== null) {
         activeDay = savedActiveDay;
     }
+    
+    // Load Little League mode setting
+    const savedLLMode = localStorage.getItem('useLittleLeague');
+    if (savedLLMode !== null) {
+        useLittleLeague = JSON.parse(savedLLMode);
+    }
+    
+    // Load Little League data
+    const savedAges = localStorage.getItem('playerAges');
+    if (savedAges) {
+        playerAges = JSON.parse(savedAges);
+    }
+    
+    const savedLLData = localStorage.getItem('llPitchData');
+    if (savedLLData) {
+        llPitchData = JSON.parse(savedLLData);
+    } else {
+        // Initialize LL data for all players
+        players.forEach(player => {
+            if (!llPitchData[player]) {
+                llPitchData[player] = {
+                    day1: { pitches: 0, caughtAfter: false },
+                    day2: { pitches: 0, caughtAfter: false },
+                    day3: { pitches: 0, caughtAfter: false }
+                };
+            }
+        });
+    }
 }
 
 // Save data to localStorage
@@ -138,6 +192,9 @@ function saveData() {
     localStorage.setItem('use13URules', JSON.stringify(use13URules));
     localStorage.setItem('useThreeDayColumn', JSON.stringify(useThreeDayColumn));
     localStorage.setItem('activeDay', activeDay);
+    localStorage.setItem('useLittleLeague', JSON.stringify(useLittleLeague));
+    localStorage.setItem('playerAges', JSON.stringify(playerAges));
+    localStorage.setItem('llPitchData', JSON.stringify(llPitchData));
 }
 
 // Calculate remaining innings and status
@@ -350,6 +407,107 @@ function setActiveDay(day) {
     renderTable();
 }
 
+// ============ LITTLE LEAGUE FUNCTIONS ============
+
+// Get LL rules for a specific age
+function getLLRules(age) {
+    if (age <= 8) return LL_RULES.AGE_7_8;
+    if (age <= 10) return LL_RULES.AGE_9_10;
+    if (age <= 12) return LL_RULES.AGE_11_12;
+    if (age <= 14) return LL_RULES.AGE_13_14;
+    return LL_RULES.AGE_15_16;
+}
+
+// Calculate rest days required based on pitch count and age
+function getRestDaysRequired(pitches, age) {
+    const rules = getLLRules(age);
+    for (let [threshold, days] of rules.rest) {
+        if (pitches >= threshold) return days;
+    }
+    return 0;
+}
+
+// Get next available day to pitch
+function getNextAvailableDay(player, currentDay) {
+    const age = playerAges[player] || 12;
+    const data = llPitchData[player];
+    
+    if (!data) return currentDay;
+    
+    // Get the pitch count from the most recent day
+    let lastPitchDay = null;
+    let lastPitches = 0;
+    
+    if (currentDay === 'day2') {
+        lastPitchDay = 'day1';
+        lastPitches = data.day1?.pitches || 0;
+    } else if (currentDay === 'day3') {
+        // Check day2 first, if none then day1
+        if ((data.day2?.pitches || 0) > 0) {
+            lastPitchDay = 'day2';
+            lastPitches = data.day2.pitches;
+        } else if ((data.day1?.pitches || 0) > 0) {
+            lastPitchDay = 'day1';
+            lastPitches = data.day1.pitches;
+        }
+    }
+    
+    if (lastPitches === 0) return currentDay; // No rest needed
+    
+    const restDays = getRestDaysRequired(lastPitches, age);
+    
+    if (restDays === 0) return currentDay;
+    if (restDays === 1 && currentDay === 'day2') return 'day3';
+    if (restDays === 1 && currentDay === 'day3') return currentDay;
+    if (restDays >= 2 && currentDay === 'day2') return 'day3+';
+    if (restDays >= 2 && currentDay === 'day3') return 'day3+';
+    if (restDays >= 3) return 'day3+';
+    
+    return currentDay;
+}
+
+// Increment pitch count for LL mode
+function incrementLLPitches(player, day) {
+    if (!llPitchData[player]) {
+        llPitchData[player] = {
+            day1: { pitches: 0, caughtAfter: false },
+            day2: { pitches: 0, caughtAfter: false },
+            day3: { pitches: 0, caughtAfter: false }
+        };
+    }
+    
+    const age = playerAges[player] || 12;
+    const rules = getLLRules(age);
+    const currentPitches = llPitchData[player][day].pitches || 0;
+    
+    if (currentPitches < rules.max) {
+        llPitchData[player][day].pitches = Math.min(currentPitches + 1, rules.max);
+        saveData();
+        renderTable();
+    }
+}
+
+// Decrement pitch count for LL mode
+function decrementLLPitches(player, day) {
+    if (!llPitchData[player]) return;
+    
+    const currentPitches = llPitchData[player][day].pitches || 0;
+    if (currentPitches > 0) {
+        llPitchData[player][day].pitches = currentPitches - 1;
+        saveData();
+        renderTable();
+    }
+}
+
+// Toggle catcher status after pitching
+function toggleLLCatcher(player, day) {
+    if (!llPitchData[player]) return;
+    
+    llPitchData[player][day].caughtAfter = !llPitchData[player][day].caughtAfter;
+    saveData();
+    renderTable();
+}
+
 // Update column headers to show which is active
 function updateColumnHeaders() {
     const day1Header = document.querySelector('th:nth-child(3)'); // Day 1
@@ -370,8 +528,179 @@ function updateColumnHeaders() {
     }
 }
 
+// Render Little League table
+function renderLittleLeagueTable() {
+    const tbody = document.getElementById('pitchingTableBody');
+    const table = document.getElementById('pitchingTable');
+    tbody.innerHTML = '';
+    
+    // Update table header for LL mode
+    const thead = table.querySelector('thead tr');
+    thead.innerHTML = `
+        <th></th>
+        <th>Player</th>
+        <th>Age</th>
+        <th>Day 1 Pitches</th>
+        <th>Can Catch?</th>
+        <th>Day 2 Pitches</th>
+        <th>Can Catch?</th>
+        <th>Day 3 Pitches</th>
+        <th>Can Catch?</th>
+        <th>Next Available</th>
+    `;
+    
+    // Show/hide the Remove Player button
+    const deleteBtn = document.getElementById('deleteBtn');
+    if (playerOrder.length === 0) {
+        deleteBtn.style.display = 'none';
+    } else {
+        deleteBtn.style.display = '';
+    }
+    
+    if (playerOrder.length === 0) {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td colspan="10" style="text-align: center; padding: 2rem; color: #666;">
+                No players added yet. Click "Add Player" to get started.
+            </td>
+        `;
+        tbody.appendChild(row);
+        return;
+    }
+    
+    playerOrder.forEach((player, index) => {
+        const age = playerAges[player] || 12;
+        const data = llPitchData[player] || {
+            day1: { pitches: 0, caughtAfter: false },
+            day2: { pitches: 0, caughtAfter: false },
+            day3: { pitches: 0, caughtAfter: false }
+        };
+        
+        const day1Pitches = data.day1?.pitches || 0;
+        const day2Pitches = data.day2?.pitches || 0;
+        const day3Pitches = data.day3?.pitches || 0;
+        
+        const day1CaughtAfter = data.day1?.caughtAfter || false;
+        const day2CaughtAfter = data.day2?.caughtAfter || false;
+        const day3CaughtAfter = data.day3?.caughtAfter || false;
+        
+        // Calculate catcher eligibility
+        const canCatchDay1 = canCatchAfterPitching(day1Pitches);
+        const canCatchDay2 = canCatchAfterPitching(day2Pitches);
+        const canCatchDay3 = canCatchAfterPitching(day3Pitches);
+        
+        // Calculate next available day (simplified for display)
+        let nextAvailable = 'Day 2';
+        if (day1Pitches > 0) {
+            const restDays = getRestDaysRequired(day1Pitches, age);
+            if (restDays === 0) nextAvailable = 'Day 2';
+            else if (restDays === 1) nextAvailable = 'Day 3';
+            else nextAvailable = `${restDays+1} days`;
+        }
+        if (day2Pitches > 0) {
+            const restDays = getRestDaysRequired(day2Pitches, age);
+            if (restDays === 0) nextAvailable = 'Day 3';
+            else if (restDays === 1) nextAvailable = '2 days';
+            else nextAvailable = `${restDays+1} days`;
+        }
+        if (day3Pitches > 0) {
+            const restDays = getRestDaysRequired(day3Pitches, age);
+            nextAvailable = restDays === 0 ? 'Available' : `${restDays+1} days`;
+        }
+        
+        const rules = getLLRules(age);
+        
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td class="drag-handle ${deleteMode ? 'delete-mode' : ''}" ${deleteMode ? `onclick="removePlayer('${player}')"` : ''}>${deleteMode ? '✕' : '☰'}</td>
+            <td>
+                <div class="player-name-cell">
+                    <span class="player-name" ondblclick="editPlayerName('${player}')">${player}</span>
+                </div>
+            </td>
+            <td style="text-align: center;">${age}</td>
+            <td>
+                <div class="innings-counter">
+                    <button class="counter-btn counter-btn-up" onclick="incrementLLPitches('${player}', 'day1')" ${day1Pitches >= rules.max ? 'disabled' : ''}>▲</button>
+                    <span class="innings-value">${day1Pitches}</span>
+                    <button class="counter-btn counter-btn-down" onclick="decrementLLPitches('${player}', 'day1')" ${day1Pitches <= 0 ? 'disabled' : ''}>▼</button>
+                </div>
+            </td>
+            <td style="text-align: center;">
+                <button class="btn-secondary" onclick="toggleLLCatcher('${player}', 'day1')" style="font-size: 0.8rem; padding: 0.3rem 0.5rem;" ${!canCatchDay1 || day1Pitches === 0 ? 'disabled' : ''}>
+                    ${day1CaughtAfter ? '✓ Yes' : 'No'}
+                </button>
+            </td>
+            <td>
+                <div class="innings-counter">
+                    <button class="counter-btn counter-btn-up" onclick="incrementLLPitches('${player}', 'day2')" ${day2Pitches >= rules.max ? 'disabled' : ''}>▲</button>
+                    <span class="innings-value">${day2Pitches}</span>
+                    <button class="counter-btn counter-btn-down" onclick="decrementLLPitches('${player}', 'day2')" ${day2Pitches <= 0 ? 'disabled' : ''}>▼</button>
+                </div>
+            </td>
+            <td style="text-align: center;">
+                <button class="btn-secondary" onclick="toggleLLCatcher('${player}', 'day2')" style="font-size: 0.8rem; padding: 0.3rem 0.5rem;" ${!canCatchDay2 || day2Pitches === 0 ? 'disabled' : ''}>
+                    ${day2CaughtAfter ? '✓ Yes' : 'No'}
+                </button>
+            </td>
+            <td>
+                <div class="innings-counter">
+                    <button class="counter-btn counter-btn-up" onclick="incrementLLPitches('${player}', 'day3')" ${day3Pitches >= rules.max ? 'disabled' : ''}>▲</button>
+                    <span class="innings-value">${day3Pitches}</span>
+                    <button class="counter-btn counter-btn-down" onclick="decrementLLPitches('${player}', 'day3')" ${day3Pitches <= 0 ? 'disabled' : ''}>▼</button>
+                </div>
+            </td>
+            <td style="text-align: center;">
+                <button class="btn-secondary" onclick="toggleLLCatcher('${player}', 'day3')" style="font-size: 0.8rem; padding: 0.3rem 0.5rem;" ${!canCatchDay3 || day3Pitches === 0 ? 'disabled' : ''}>
+                    ${day3CaughtAfter ? '✓ Yes' : 'No'}
+                </button>
+            </td>
+            <td style="text-align: center; font-weight: bold;">${nextAvailable}</td>
+        `;
+        
+        row.setAttribute('data-player', player);
+        row.setAttribute('data-index', index);
+        row.setAttribute('draggable', 'false');
+        
+        const dragHandle = row.querySelector('.drag-handle');
+        
+        // Add long-press support to player name for editing
+        const playerNameSpan = row.querySelector('.player-name');
+        let longPressTimer = null;
+        
+        playerNameSpan.addEventListener('touchstart', (e) => {
+            longPressTimer = setTimeout(() => {
+                editPlayerName(player);
+            }, 500);
+        }, { passive: true });
+        
+        playerNameSpan.addEventListener('touchend', () => {
+            if (longPressTimer) {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            }
+        }, { passive: true });
+        
+        playerNameSpan.addEventListener('touchmove', () => {
+            if (longPressTimer) {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            }
+        }, { passive: true });
+        
+        tbody.appendChild(row);
+    });
+}
+
 // Create table rows
 function renderTable() {
+    // Branch to Little League rendering if in LL mode
+    if (useLittleLeague) {
+        renderLittleLeagueTable();
+        return;
+    }
+    
+    // Original USSSA rendering code
     const tbody = document.getElementById('pitchingTableBody');
     const table = document.getElementById('pitchingTable');
     tbody.innerHTML = '';
@@ -782,6 +1111,46 @@ function removePlayer(playerName) {
 
 // Add a new player
 function addPlayer() {
+    if (useLittleLeague) {
+        // For LL mode, need to get both name and age
+        const playerName = prompt('Enter player name:');
+        if (!playerName) return;
+        
+        const trimmedName = playerName.trim();
+        if (!trimmedName) {
+            alert('Player name cannot be empty');
+            return;
+        }
+        
+        if (players.includes(trimmedName)) {
+            alert('Player already exists');
+            return;
+        }
+        
+        const age = prompt('Enter player age (7-16):', '12');
+        if (!age) return;
+        
+        const ageNum = parseInt(age);
+        if (isNaN(ageNum) || ageNum < 7 || ageNum > 16) {
+            alert('Please enter a valid age between 7 and 16');
+            return;
+        }
+        
+        players.push(trimmedName);
+        playerOrder.push(trimmedName);
+        playerAges[trimmedName] = ageNum;
+        llPitchData[trimmedName] = {
+            day1: { pitches: 0, caughtAfter: false },
+            day2: { pitches: 0, caughtAfter: false },
+            day3: { pitches: 0, caughtAfter: false }
+        };
+        
+        saveData();
+        renderTable();
+        return;
+    }
+    
+    // Original USSSA mode
     // Show custom modal instead of browser prompt
     const modal = document.getElementById('addPlayerModal');
     const input = document.getElementById('playerNameInput');
@@ -897,6 +1266,9 @@ function submitImport() {
         pitchingData = shareData.pitchingData || {};
         use13URules = shareData.use13URules || false;
         useThreeDayColumn = shareData.useThreeDayColumn || false;
+        useLittleLeague = shareData.useLittleLeague || false;
+        playerAges = shareData.playerAges || {};
+        llPitchData = shareData.llPitchData || {};
         
         // Update UI
         updateRules();
@@ -907,6 +1279,10 @@ function submitImport() {
         const threeDayCheckbox = document.getElementById('useThreeDayColumn');
         if (threeDayCheckbox) {
             threeDayCheckbox.checked = useThreeDayColumn;
+        }
+        const llCheckbox = document.getElementById('useLittleLeague');
+        if (llCheckbox) {
+            llCheckbox.checked = useLittleLeague;
         }
         
         renderTable();
@@ -1042,6 +1418,26 @@ document.addEventListener('DOMContentLoaded', function() {
         threeDayCheckbox.checked = useThreeDayColumn;
     }
     
+    const llCheckbox = document.getElementById('useLittleLeague');
+    if (llCheckbox) {
+        llCheckbox.checked = useLittleLeague;
+    }
+    
+    // Update app title and header based on mode
+    const title = document.getElementById('app-title');
+    const header = document.getElementById('app-header');
+    const usssaSettings = document.getElementById('usssa-settings');
+    
+    if (useLittleLeague) {
+        if (title) title.textContent = 'Little League Pitching Tracker';
+        if (header) header.textContent = 'Little League Pitching Tracker';
+        if (usssaSettings) usssaSettings.style.display = 'none';
+    } else {
+        if (title) title.textContent = 'USSSA Pitching Tracker';
+        if (header) header.textContent = 'USSSA Pitching Tracker';
+        if (usssaSettings) usssaSettings.style.display = 'block';
+    }
+    
     // Lock screen orientation to portrait on mobile devices
     if (screen.orientation && screen.orientation.lock) {
         screen.orientation.lock('portrait').catch(err => {
@@ -1132,23 +1528,83 @@ function toggleThreeDayColumn() {
     renderTable();
 }
 
+// Toggle Little League mode
+function toggleLittleLeague() {
+    const checkbox = document.getElementById('useLittleLeague');
+    useLittleLeague = checkbox.checked;
+    
+    // Update app title and header
+    const title = document.getElementById('app-title');
+    const header = document.getElementById('app-header');
+    const usssaSettings = document.getElementById('usssa-settings');
+    
+    if (useLittleLeague) {
+        if (title) title.textContent = 'Little League Pitching Tracker';
+        if (header) header.textContent = 'Little League Pitching Tracker';
+        if (usssaSettings) usssaSettings.style.display = 'none';
+        
+        // Initialize LL data for existing players if needed
+        players.forEach(player => {
+            if (!playerAges[player]) {
+                playerAges[player] = 12; // Default age
+            }
+            if (!llPitchData[player]) {
+                llPitchData[player] = {
+                    day1: { pitches: 0, caughtAfter: false },
+                    day2: { pitches: 0, caughtAfter: false },
+                    day3: { pitches: 0, caughtAfter: false }
+                };
+            }
+        });
+    } else {
+        if (title) title.textContent = 'USSSA Pitching Tracker';
+        if (header) header.textContent = 'USSSA Pitching Tracker';
+        if (usssaSettings) usssaSettings.style.display = 'block';
+    }
+    
+    saveData();
+    renderRules();
+    renderTable();
+}
+
 // Render rules list
 function renderRules() {
     const rulesList = document.getElementById('rules-list');
     const rulesTitle = document.getElementById('rules-title');
     
-    if (rulesTitle) {
-        rulesTitle.textContent = `Quick Reference Rules (${RULES.NAME})`;
-    }
-    
-    if (rulesList) {
-        rulesList.innerHTML = `
-            <li><strong>One Day Max to Pitch Next Day:</strong> ${RULES.ONE_DAY_MAX_TO_PITCH_NEXT} innings</li>
-            <li><strong>One Day Maximum:</strong> ${RULES.ONE_DAY_MAX} innings</li>
-            <li><strong>Two Day Maximum:</strong> ${RULES.THREE_DAY_MAX} innings total</li>
-            <li><strong>Three Day Maximum:</strong> ${RULES.THREE_DAY_MAX} innings total</li>
-            <li><strong>Mandatory Rest:</strong> After ${RULES.ONE_DAY_MAX_TO_PITCH_NEXT}+ innings in one day, ${RULES.THREE_DAY_MAX} innings in 2 days, ${RULES.THREE_DAY_MAX} innings in 3 days, or 3 consecutive days pitching</li>
-        `;
+    if (useLittleLeague) {
+        // Little League rules
+        if (rulesTitle) {
+            rulesTitle.textContent = 'Quick Reference Rules (Little League)';
+        }
+        
+        if (rulesList) {
+            rulesList.innerHTML = `
+                <li><strong>Ages 7-8:</strong> 50 pitches max per day</li>
+                <li><strong>Ages 9-10:</strong> 75 pitches max per day</li>
+                <li><strong>Ages 11-12:</strong> 85 pitches max per day</li>
+                <li><strong>Ages 13-16:</strong> 95 pitches max per day</li>
+                <li><strong>Rest (14U):</strong> 66+ = 4 days, 51-65 = 3 days, 36-50 = 2 days, 21-35 = 1 day, 1-20 = 0 days</li>
+                <li><strong>Rest (15-16):</strong> 76+ = 4 days, 61-75 = 3 days, 46-60 = 2 days, 31-45 = 1 day, 1-30 = 0 days</li>
+                <li><strong>Catcher Rule:</strong> Cannot catch after pitching 41+ pitches. Cannot pitch after catching 4+ innings same day.</li>
+                <li><strong>Full Rules:</strong> <a href="https://www.littleleague.org/playing-rules/pitch-count/" target="_blank" style="color: #0066cc;">Little League Pitch Count</a></li>
+            `;
+        }
+    } else {
+        // USSSA rules
+        if (rulesTitle) {
+            rulesTitle.textContent = `Quick Reference Rules (${RULES.NAME})`;
+        }
+        
+        if (rulesList) {
+            rulesList.innerHTML = `
+                <li><strong>One Day Max to Pitch Next Day:</strong> ${RULES.ONE_DAY_MAX_TO_PITCH_NEXT} innings</li>
+                <li><strong>One Day Maximum:</strong> ${RULES.ONE_DAY_MAX} innings</li>
+                <li><strong>Two Day Maximum:</strong> ${RULES.THREE_DAY_MAX} innings total</li>
+                <li><strong>Three Day Maximum:</strong> ${RULES.THREE_DAY_MAX} innings total</li>
+                <li><strong>Mandatory Rest:</strong> After ${RULES.ONE_DAY_MAX_TO_PITCH_NEXT}+ innings in one day, ${RULES.THREE_DAY_MAX} innings in 2 days, ${RULES.THREE_DAY_MAX} innings in 3 days, or 3 consecutive days pitching</li>
+            `;
+        }
     }
 }
 
@@ -1165,7 +1621,10 @@ function shareData() {
         playerOrder: playerOrder,
         pitchingData: pitchingData,
         use13URules: use13URules,
-        useThreeDayColumn: useThreeDayColumn
+        useThreeDayColumn: useThreeDayColumn,
+        useLittleLeague: useLittleLeague,
+        playerAges: playerAges,
+        llPitchData: llPitchData
     };
     
     // Encode data to base64 URL-safe string
@@ -1206,6 +1665,9 @@ function loadSharedData() {
         pitchingData = shareData.pitchingData || {};
         use13URules = shareData.use13URules || false;
         useThreeDayColumn = shareData.useThreeDayColumn || false;
+        useLittleLeague = shareData.useLittleLeague || false;
+        playerAges = shareData.playerAges || {};
+        llPitchData = shareData.llPitchData || {};
         
         // Update rules based on the shared setting
         updateRules();
