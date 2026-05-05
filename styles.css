@@ -238,6 +238,8 @@ thead th {
 thead th:first-child {
     width: 40px;
     padding: 0.6rem 0.2rem;
+    border-right: none;
+    background: transparent;
 }
 
 thead th:nth-child(2) {
