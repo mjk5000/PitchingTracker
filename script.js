@@ -466,17 +466,11 @@ function changeLLDayOfWeek(player, direction) {
 function calculateNextAvailable(player) {
     const dayOfWeek = llDayOfWeek[player] || '';
     const age = playerAges[player] || 12;
-    const data = llPitchData[player] || { day1: { pitches: 0 }, day2: { pitches: 0 }, day3: { pitches: 0 } };
+    const pitches = llPitchData[player]?.pitches || 0;
     
-    // Find the most recent day with pitches
-    let maxPitches = 0;
-    if (data.day1?.pitches > 0) maxPitches = Math.max(maxPitches, data.day1.pitches);
-    if (data.day2?.pitches > 0) maxPitches = Math.max(maxPitches, data.day2.pitches);
-    if (data.day3?.pitches > 0) maxPitches = Math.max(maxPitches, data.day3.pitches);
+    if (!dayOfWeek || pitches === 0) return 'Available';
     
-    if (!dayOfWeek || maxPitches === 0) return 'Available';
-    
-    const restDays = getRestDaysRequired(maxPitches, age);
+    const restDays = getRestDaysRequired(pitches, age);
     if (restDays === 0) return 'Available';
     
     const dayIndex = DAYS_OF_WEEK.indexOf(dayOfWeek);
@@ -487,47 +481,41 @@ function calculateNextAvailable(player) {
 }
 
 // Increment pitch count for LL mode
-function incrementLLPitches(player, day) {
+function incrementLLPitches(player) {
     if (!llPitchData[player]) {
-        llPitchData[player] = {
-            day1: { pitches: 0 },
-            day2: { pitches: 0 },
-            day3: { pitches: 0 }
-        };
-    }
-    
-    if (!llPitchData[player][day]) {
-        llPitchData[player][day] = { pitches: 0 };
+        llPitchData[player] = { pitches: 0 };
     }
     
     const age = playerAges[player] || 12;
     const rules = getLLRules(age);
-    const currentPitches = llPitchData[player][day].pitches || 0;
+    const currentPitches = llPitchData[player].pitches || 0;
     
     if (currentPitches < rules.max) {
-        llPitchData[player][day].pitches = Math.min(currentPitches + 1, rules.max);
+        llPitchData[player].pitches = Math.min(currentPitches + 1, rules.max);
         saveData();
         renderTable();
     }
 }
 
 // Decrement pitch count for LL mode
-function decrementLLPitches(player, day) {
-    if (!llPitchData[player] || !llPitchData[player][day]) return;
+function decrementLLPitches(player) {
+    if (!llPitchData[player]) return;
     
-    const currentPitches = llPitchData[player][day].pitches || 0;
+    const currentPitches = llPitchData[player].pitches || 0;
     if (currentPitches > 0) {
-        llPitchData[player][day].pitches = currentPitches - 1;
+        llPitchData[player].pitches = currentPitches - 1;
         saveData();
         renderTable();
     }
 }
 
-// Update column headers to show which is active (for LL mode, columns 4, 5, 6)
+// No need for column header updates in simplified LL mode
+
+// Update column headers to show which is active (for USSSA mode)
 function updateColumnHeaders() {
-    const day1Header = document.querySelector('th:nth-child(4)'); // Day 1 (after Player, Age, Day of Week)
-    const day2Header = document.querySelector('th:nth-child(5)'); // Day 2
-    const day3Header = document.querySelector('th:nth-child(6)'); // Day 3
+    const day1Header = document.querySelector('th:nth-child(3)');
+    const day2Header = document.querySelector('th:nth-child(4)');
+    const day3Header = document.querySelector('th:nth-child(5)');
     
     if (day1Header) {
         day1Header.className = activeDay === 'day1' ? 'active-header' : '';
@@ -556,14 +544,9 @@ function renderLittleLeagueTable() {
         <th>Player</th>
         <th>Age</th>
         <th>Day of Week</th>
-        <th onclick="setActiveDay('day1')" style="cursor: pointer;">Day 1</th>
-        <th onclick="setActiveDay('day2')" style="cursor: pointer;">Day 2</th>
-        <th onclick="setActiveDay('day3')" style="cursor: pointer;">Day 3</th>
+        <th>Pitches</th>
         <th>Next Available</th>
     `;
-    
-    // Update column headers to show which day is active
-    updateColumnHeaders();
     
     // Show/hide the Remove Player button
     const deleteBtn = document.getElementById('deleteBtn');
@@ -576,7 +559,7 @@ function renderLittleLeagueTable() {
     if (playerOrder.length === 0) {
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td colspan="8" style="text-align: center; padding: 2rem; color: #666;">
+            <td colspan="6" style="text-align: center; padding: 2rem; color: #666;">
                 No players added yet. Click "Add Player" to get started.
             </td>
         `;
@@ -586,58 +569,12 @@ function renderLittleLeagueTable() {
     
     playerOrder.forEach((player, index) => {
         const age = playerAges[player] || 12;
-        const data = llPitchData[player] || {
-            day1: { pitches: 0 },
-            day2: { pitches: 0 },
-            day3: { pitches: 0 }
-        };
-        
-        const day1Pitches = data.day1?.pitches || 0;
-        const day2Pitches = data.day2?.pitches || 0;
-        const day3Pitches = data.day3?.pitches || 0;
+        const pitches = llPitchData[player]?.pitches || 0;
         
         const dayOfWeek = llDayOfWeek[player] || '';
         const nextAvailable = calculateNextAvailable(player);
         
         const rules = getLLRules(age);
-        
-        // Build day cells - only show arrows for active day
-        let day1Cell, day2Cell, day3Cell;
-        
-        if (activeDay === 'day1') {
-            day1Cell = `
-                <td class="active-day">
-                    <div class="innings-counter">
-                        <button class="counter-btn counter-btn-up" onclick="incrementLLPitches('${player}', 'day1')" ${day1Pitches >= rules.max ? 'disabled' : ''}>▲</button>
-                        <span class="innings-value">${day1Pitches}</span>
-                        <button class="counter-btn counter-btn-down" onclick="decrementLLPitches('${player}', 'day1')" ${day1Pitches <= 0 ? 'disabled' : ''}>▼</button>
-                    </div>
-                </td>`;
-            day2Cell = `<td onclick="setActiveDay('day2')" style="cursor: pointer;"><span class="innings-value">${day2Pitches}</span></td>`;
-            day3Cell = `<td onclick="setActiveDay('day3')" style="cursor: pointer;"><span class="innings-value">${day3Pitches}</span></td>`;
-        } else if (activeDay === 'day2') {
-            day1Cell = `<td onclick="setActiveDay('day1')" style="cursor: pointer;"><span class="innings-value">${day1Pitches}</span></td>`;
-            day2Cell = `
-                <td class="active-day">
-                    <div class="innings-counter">
-                        <button class="counter-btn counter-btn-up" onclick="incrementLLPitches('${player}', 'day2')" ${day2Pitches >= rules.max ? 'disabled' : ''}>▲</button>
-                        <span class="innings-value">${day2Pitches}</span>
-                        <button class="counter-btn counter-btn-down" onclick="decrementLLPitches('${player}', 'day2')" ${day2Pitches <= 0 ? 'disabled' : ''}>▼</button>
-                    </div>
-                </td>`;
-            day3Cell = `<td onclick="setActiveDay('day3')" style="cursor: pointer;"><span class="innings-value">${day3Pitches}</span></td>`;
-        } else { // day3
-            day1Cell = `<td onclick="setActiveDay('day1')" style="cursor: pointer;"><span class="innings-value">${day1Pitches}</span></td>`;
-            day2Cell = `<td onclick="setActiveDay('day2')" style="cursor: pointer;"><span class="innings-value">${day2Pitches}</span></td>`;
-            day3Cell = `
-                <td class="active-day">
-                    <div class="innings-counter">
-                        <button class="counter-btn counter-btn-up" onclick="incrementLLPitches('${player}', 'day3')" ${day3Pitches >= rules.max ? 'disabled' : ''}>▲</button>
-                        <span class="innings-value">${day3Pitches}</span>
-                        <button class="counter-btn counter-btn-down" onclick="decrementLLPitches('${player}', 'day3')" ${day3Pitches <= 0 ? 'disabled' : ''}>▼</button>
-                    </div>
-                </td>`;
-        }
         
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -661,9 +598,13 @@ function renderLittleLeagueTable() {
                     <button class="counter-btn counter-btn-down" onclick="changeLLDayOfWeek('${player}', -1)">▼</button>
                 </div>
             </td>
-            ${day1Cell}
-            ${day2Cell}
-            ${day3Cell}
+            <td>
+                <div class="innings-counter">
+                    <button class="counter-btn counter-btn-up" onclick="incrementLLPitches('${player}')" ${pitches >= rules.max ? 'disabled' : ''}>▲</button>
+                    <span class="innings-value">${pitches}</span>
+                    <button class="counter-btn counter-btn-down" onclick="decrementLLPitches('${player}')" ${pitches <= 0 ? 'disabled' : ''}>▼</button>
+                </div>
+            </td>
             <td style="text-align: center; font-weight: bold;">${nextAvailable}</td>
         `;
         
