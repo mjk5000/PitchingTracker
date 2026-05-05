@@ -1422,6 +1422,10 @@ function submitAddLLPlayer() {
     playerAges[trimmedName] = ageNum;
     llPitchData[trimmedName] = { pitches: 0 };
     
+    // Set day of week to today
+    const todayIndex = (new Date().getDay() + 6) % 7; // Convert Sunday=0 to array index
+    llDayOfWeek[trimmedName] = DAYS_OF_WEEK[todayIndex];
+    
     saveData();
     renderTable();
     closeAddLLPlayerModal();
@@ -1671,6 +1675,10 @@ function deletePlayer(playerName) {
 // Reset all data
 function resetAllData() {
     if (confirm('Reset all pitching data?')) {
+        // Get today's day of week
+        const todayIndex = (new Date().getDay() + 6) % 7; // Convert Sunday=0 to array index
+        const todayDay = DAYS_OF_WEEK[todayIndex];
+        
         // Reset USSSA data
         players.forEach(player => {
             pitchingData[player] = {
@@ -1683,7 +1691,7 @@ function resetAllData() {
         // Reset Little League data
         llPlayers.forEach(player => {
             llPitchData[player] = { pitches: 0 };
-            llDayOfWeek[player] = 'Mon';
+            llDayOfWeek[player] = todayDay;
             playerAges[player] = 12;
         });
         
