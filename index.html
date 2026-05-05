@@ -10,7 +10,7 @@
     <meta name="apple-mobile-web-app-title" content="Pitching Tracker">
     <meta name="mobile-web-app-capable" content="yes">
     <title id="app-title">USSSA Pitching Tracker</title>
-    <link rel="stylesheet" href="styles.css?v=2.0.0">
+    <link rel="stylesheet" href="styles.css?v=2.0.1">
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/svg+xml" href="icon.svg">
     <link rel="apple-touch-icon" href="icon.svg">
@@ -77,19 +77,19 @@
                         <input type="radio" name="leagueMode" id="usssaMode" value="usssa" onchange="toggleLeagueMode()" checked>
                         <span>USSSA Innings Tracking</span>
                     </label>
+                    <div id="usssa-settings" style="padding-left: 2rem; margin-top: 0.5rem;">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="use13URules" onchange="toggle13URules()">
+                            <span>Use 13U+ Division Rules (7 innings daily max)</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="useThreeDayColumn" onchange="toggleThreeDayColumn()">
+                            <span>Show Three Day Tournament Column</span>
+                        </label>
+                    </div>
                     <label class="checkbox-label">
                         <input type="radio" name="leagueMode" id="littleLeagueMode" value="littleLeague" onchange="toggleLeagueMode()">
                         <span>Little League Pitch Count</span>
-                    </label>
-                </div>
-                <div id="usssa-settings" style="padding-left: 1.5rem; border-left: 3px solid #0066cc; margin-bottom: 1rem;">
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="use13URules" onchange="toggle13URules()">
-                        <span>Use 13U+ Division Rules (7 innings daily max)</span>
-                    </label>
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="useThreeDayColumn" onchange="toggleThreeDayColumn()">
-                        <span>Show Three Day Tournament Column</span>
                     </label>
                 </div>
                 <button onclick="manualUpdateCheck()" class="btn-secondary" style="width: 100%; margin-top: 1rem;">Check for Updates</button>
@@ -97,7 +97,7 @@
         </div>
         
         <div class="version">
-            v2.0.0
+            v2.0.1
         </div>
     </div>
 
@@ -138,7 +138,7 @@
         </div>
     </div>
 
-    <script src="script.js?v=2.0.0"></script>
+    <script src="script.js?v=2.0.1"></script>
     <script>
         // Register service worker for PWA functionality and auto-updates
         if ('serviceWorker' in navigator) {
@@ -164,7 +164,7 @@
                     });
                     const data = await response.json();
                     const remoteVersion = data.version;
-                    const currentVersion = '2.0.0';
+                    const currentVersion = '2.0.1';
                     console.log('Current:', currentVersion, 'Remote:', remoteVersion);
                     if (remoteVersion !== currentVersion) {
                         console.log('Version mismatch, forcing update');
@@ -212,7 +212,7 @@
                 }, 100);
                 
                 // Register service worker
-                navigator.serviceWorker.register('./sw.js?v=2.0.0')
+                navigator.serviceWorker.register('./sw.js?v=2.0.1')
                     .then(registration => {
                         console.log('ServiceWorker registered:', registration);
                         
