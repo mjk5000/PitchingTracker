@@ -1417,6 +1417,7 @@ function submitImport() {
         useLittleLeague = shareData.useLittleLeague || false;
         playerAges = shareData.playerAges || {};
         llPitchData = shareData.llPitchData || {};
+        llDayOfWeek = shareData.llDayOfWeek || {};
         
         // Update UI
         updateRules();
@@ -1793,7 +1794,8 @@ function shareData() {
         useThreeDayColumn: useThreeDayColumn,
         useLittleLeague: useLittleLeague,
         playerAges: playerAges,
-        llPitchData: llPitchData
+        llPitchData: llPitchData,
+        llDayOfWeek: llDayOfWeek
     };
     
     // Encode data to base64 URL-safe string
@@ -1837,6 +1839,7 @@ function loadSharedData() {
         useLittleLeague = shareData.useLittleLeague || false;
         playerAges = shareData.playerAges || {};
         llPitchData = shareData.llPitchData || {};
+        llDayOfWeek = shareData.llDayOfWeek || {};
         
         // Update rules based on the shared setting
         updateRules();
